@@ -1,1 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>e2v3 test</title>
+  <meta name="description" content="Grey blueprint layout with light cyberpunk accents. Five-page base template." />
+  <style>
+    /* =========================
+       THEME VARIABLES
+       ========================= */
+    :root {
+      --bg-0: #0f0f10;       /* page background */
+      --bg-1: #151517;       /* panel background */
+      --bg-2: #1b1c1f;       /* card background */
+      --ink-1: #d9d9dc;      /* primary text */
+      --ink-2: #a6a7aa;      /* secondary text */
+      --grid-1: rgba(255,255,255,0.04); /* light grid lines */
+      --grid-2: rgba(255,255,255,0.03); /* fine grid lines */
+      /* Accent palette (choose *one* or *two*) */
+      --accent-1: #30e0ff;   /* cyan */  
+      --accent-2: #ff2bd6;   /* magenta */
+      --accent-active: var(--accent-1); /* JS will toggle this subtly */
+      --radius-xl: 18px;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 8px;
+      --shadow-soft: 0 6px 22px rgba(0,0,0,0.35);
+      --shadow-edge: 0 0 0 1px rgba(255,255,255,0.05) inset;
+      --outline: 1px dashed rgba(255,255,255,0.1); /* blueprint stroke */
+      --glow: 0 0 0px var(--accent-active), 0 0 16px var(--accent-active), 0 0 28px var(--accent-active);
+    }
+
+    /* =========================
+       GLOBAL RESET / BASE
+       ========================= */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      color: var(--ink-1);
+      background: var(--bg-0);
+      font: 15.5px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      letter-spacing: 0.2px;
+      /* Blueprint-style grid background (greyscale) */
+      background-image:
+        linear-gradient(var(--bg-0), var(--bg-0)),
+        repeating-linear-gradient(0deg, var(--grid-2) 0, var(--grid-2) 1px, transparent 1px, transparent 20px),
+        repeating-linear-gradient(90deg, var(--grid-2) 0, var(--grid-2) 1px, transparent 1px, transparent 20px),
+        repeating-linear-gradient(0deg, var(--grid-1) 0, var(--grid-1) 1px, transparent 1px, transparent 100px),
+        repeating-linear-gradient(90deg, var(--grid-1) 0, var(--grid-1) 1px, transparent 1px, transparent 100px);
+      background-blend-mode: normal, screen, screen, screen, screen;
+      background-attachment: fixed;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+
+    /* =========================
+       LAYOUT
+       ========================= */
+    .app-shell {
+      min-height: 100dvh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+
+    header {
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: blur(8px);
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.0));
+      border-bottom: var(--outline);
+    }
+
+    .topbar {
+      max-width: 1100px; margin: 0 auto; padding: 14px 20px;
+      display: grid; grid-template-columns: 180px 1fr 240px; gap: 16px; align-items: center;
+    }
+
+    .brand {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 12px; border: var(--outline); border-radius: var(--radius-md);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
+      box-shadow: var(--shadow-edge);
+    }
+    .brand .dot {
+      width: 12px; height: 12px; border-radius: 50%;
+      background: var(--accent-active);
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.06) inset, var(--glow);
+    }
+    .brand h1 { font-size: 15px; margin: 0; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--ink-1); }
+    .brand span { color: var(--ink-2); font-weight: 400; }
+
+    nav {
+      display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;
+    }
+    .nav-btn {
+      position: relative;
+      padding: 10px 14px; border-radius: var(--radius-sm);
+      border: var(--outline);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
+      color: var(--ink-1);
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+      box-shadow: var(--shadow-edge);
+    }
+    .nav-btn[data-active="true"] { border-color: rgba(255,255,255,0.22); }
+    .nav-btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-soft), var(--shadow-edge); }
+    .nav-btn:focus-visible { outline: 2px solid var(--accent-active); }
+
+    .quick-cta {
+      justify-self: end; display: flex; gap: 10px; align-items: center;
+    }
+    .cta {
+      padding: 10px 14px; border-radius: var(--radius-sm);
+      border: 1px solid rgba(255,255,255,0.14);
+      background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
+      color: var(--ink-1); font-weight: 600; letter-spacing: .3px;
+      box-shadow: var(--shadow-edge);
+      transition: box-shadow .2s ease, transform .2s ease;
+    }
+    .cta:hover { box-shadow: var(--shadow-soft), var(--shadow-edge); transform: translateY(-1px); }
+    .ghost { background: transparent; }
+
+    main { max-width: 1100px; margin: 28px auto 40px; padding: 0 20px; }
+
+    /* Panel / card styling */
+    .panel {
+      border: var(--outline);
+      border-radius: var(--radius-xl);
+      padding: 22px; background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      box-shadow: var(--shadow-edge);
+    }
+
+    .hero {
+      display: grid; grid-template-columns: 1.2fr .8fr; gap: 22px; align-items: center;
+    }
+    .hero h2 { font-size: 28px; margin: 0 0 6px; letter-spacing: .6px; }
+    .muted { color: var(--ink-2); }
+
+    .hero .badge {
+      display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2);
+      padding: 8px 12px; border-radius: 999px; border: var(--outline); box-shadow: var(--shadow-edge);
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.00));
+    }
+    .badge .pulse {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--accent-active); box-shadow: var(--glow);
+    }
+
+    .grid {
+      margin-top: 20px;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
+    }
+    .card {
+      border: var(--outline); border-radius: var(--radius-lg); padding: 18px;
+      background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
+      box-shadow: var(--shadow-edge);
+      transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+      min-height: 160px;
+    }
+    .card:hover { transform: translateY(-2px); box-shadow: var(--shadow-soft), var(--shadow-edge); border-color: rgba(255,255,255,0.2); }
+    .card h3 { margin: 0 0 6px; font-size: 16px; letter-spacing: .4px; }
+    .card p { margin: 0; color: var(--ink-2); }
+
+    /* Section visibility for SPA-like behaviour */
+    section[hidden] { display: none !important; }
+
+    /* Footer */
+    footer {
+      border-top: var(--outline);
+      background: linear-gradient(0deg, rgba(255,255,255,0.06), rgba(255,255,255,0.0));
+    }
+    .ftr-wrap { max-width: 1100px; margin: 0 auto; padding: 18px 20px; color: var(--ink-2); font-size: 13px; display: flex; gap: 12px; align-items: center; justify-content: space-between; }
+    .sig { color: var(--ink-2); }
+    .sig b { color: var(--ink-1); }
+
+    /* Responsive */
+    @media (max-width: 960px) {
+      .topbar { grid-template-columns: 1fr; gap: 10px; }
+      .quick-cta { justify-self: start; }
+      .hero { grid-template-columns: 1fr; }
+      .grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 620px) { .grid { grid-template-columns: 1fr; } }
+
+    /* Subtle accent underlines / separators */
+    .underline {
+      position: relative; display: inline-block;
+    }
+    .underline::after {
+      content: ""; position: absolute; left: 0; bottom: -3px; height: 2px; width: 100%;
+      background: linear-gradient(90deg, transparent, var(--accent-active), transparent);
+      filter: drop-shadow(0 0 6px var(--accent-active));
+      opacity: .55;
+    }
+
+    /* Small utility for subtle accent dots */
+    .accent-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-active); box-shadow: var(--glow); display: inline-block; vertical-align: middle; margin-right: 8px; }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header>
+      <div class="topbar">
+        <a class="brand" href="#home" data-link>
+          <span class="dot" aria-hidden="true"></span>
+          <h1>testing for<span>•e2v3</span></h1>
+        </a>
+        <nav aria-label="Primary">
+          <a class="nav-btn" data-link href="#home" data-active="true">Home</a>
+          <a class="nav-btn" data-link href="#projects">Projects</a>
+          <a class="nav-btn" data-link href="#services">Services</a>
+          <a class="nav-btn" data-link href="#work">Work</a>
+          <a class="nav-btn" data-link href="#contact">Contact</a>
+        </nav>
+        <div class="quick-cta">
+          <button class="cta ghost" id="toggleAccent" title="Toggle accent">Accent</button>
+          <a class="cta" href="#contact" data-link>Get in touch</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <!-- HOME -->
+      <section id="home" class="panel">
+        <div class="hero">
+          <div>
+            <div class="badge"><span class="pulse" aria-hidden="true"></span> Minimal grey blueprint • Light cyber accents</div>
+            <h2><span class="underline">Professional</span> & sharp base layout</h2>
+            <p class="muted">A static five-page starter with a blueprint-inspired grid, neutral greys, and a restrained neon accent. Built with semantic HTML, modern CSS, and a few lines of vanilla JS for tasteful glow.</p>
+            <p class="muted">Use it as a foundation: duplicate the sections into separate pages or keep it as a single-page shell. All accents remain subtle to preserve a clean, corporate tone.</p>
+          </div>
+          <div>
+            <div class="card" style="min-height: 220px; display: grid; place-items: center; text-align: center;">
+              <div>
+                <div class="accent-dot" aria-hidden="true"></div>
+                <strong>Blueprint Grid</strong>
+                <p class="muted">Fixed, greyscale grid with fine + coarse lines.</p>
+                <div style="margin-top:12px; font-size:12.5px; color: var(--ink-2);">Accents: <code>--accent-1</code> & <code>--accent-2</code></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid">
+          <article class="card">
+            <h3>Fast</h3>
+            <p>Zero dependencies. Pure HTML/CSS/JS. Designed to be copied, trimmed, and shipped.</p>
+          </article>
+          <article class="card">
+            <h3>Accessible</h3>
+            <p>Meaningful landmarks, focus states, and high-contrast greys keep it usable and sharp.</p>
+          </article>
+          <article class="card">
+            <h3>Customizable</h3>
+            <p>Change <code>:root</code> variables to tweak spacing, radii, and the accent palette.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- ABOUT -->
+      <section id="about" class="panel" hidden>
+        <h2 class="underline">About</h2>
+        <p class="muted">This template embraces a technical, blueprint feel—only in greyscale—then adds a single neon thread for a light cyberpunk twist. Keep one accent (<code>--accent-1</code>) for maximum restraint or enable a second (<code>--accent-2</code>) for a rare highlight.</p>
+        <div class="grid">
+          <div class="card">
+            <h3>Design Language</h3>
+            <p>Dashed outlines, subtle inner edges, and a gridded backdrop suggest schematics without shouting.</p>
+          </div>
+          <div class="card">
+            <h3>Typography</h3>
+            <p>System UI stack for speed and neutrality. Adjust sizes in the CSS root if needed.</p>
+          </div>
+          <div class="card">
+            <h3>Interaction</h3>
+            <p>Hover lifts and a faint neon glow. A small JS helper rotates the active accent on demand.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SERVICES -->
+      <section id="services" class="panel" hidden>
+        <h2 class="underline">Services</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>Consulting</h3>
+            <p>Discovery, architecture, and planning—kept simple and practical.</p>
+          </div>
+          <div class="card">
+            <h3>Design</h3>
+            <p>Wireframes, prototypes, and production-ready UI in the same minimal style.</p>
+          </div>
+          <div class="card">
+            <h3>Build</h3>
+            <p>Static-first sites with progressive enhancement and clean handoff.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- WORK / PORTFOLIO -->
+      <section id="work" class="panel" hidden>
+        <h2 class="underline">Work</h2>
+        <p class="muted">Replace these cards with projects or case studies. Keep visuals muted; let the content lead.</p>
+        <div class="grid">
+          <div class="card">
+            <h3>Project One</h3>
+            <p>Short punchy overview. Link out to details if needed.</p>
+          </div>
+          <div class="card">
+            <h3>Project Two</h3>
+            <p>What changed, who benefited, and why it mattered.</p>
+          </div>
+          <div class="card">
+            <h3>Project Three</h3>
+            <p>One metric, one graph, or one quote can suffice.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONTACT -->
+      <section id="contact" class="panel" hidden>
+        <h2 class="underline">Contact</h2>
+        <p class="muted">Keep the form lean. Accessibility and clarity first.</p>
+        <form class="grid" style="grid-template-columns: 1fr 1fr; gap: 16px;">
+          <label class="card" style="display:block;">
+            <span>Name</span>
+            <input required type="text" placeholder="Your name" 
+              style="margin-top:8px; width:100%; padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.14); background:var(--bg-1); color:var(--ink-1); box-shadow:var(--shadow-edge);"/>
+          </label>
+          <label class="card" style="display:block;">
+            <span>Email</span>
+            <input required type="email" placeholder="name@example.com" 
+              style="margin-top:8px; width:100%; padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.14); background:var(--bg-1); color:var(--ink-1); box-shadow:var(--shadow-edge);"/>
+          </label>
+          <label class="card" style="grid-column: 1 / -1; display:block;">
+            <span>Message</span>
+            <textarea rows="5" placeholder="How can we help?" 
+              style="margin-top:8px; width:100%; padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.14); background:var(--bg-1); color:var(--ink-1); box-shadow:var(--shadow-edge);"></textarea>
+          </label>
+          <div style="grid-column: 1 / -1; display:flex; gap:10px;">
+            <button class="cta" type="submit">Send</button>
+            <button class="cta ghost" type="reset">Reset</button>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <footer>
+      <div class="ftr-wrap">
+        <div class="sig">© <b><span id="year"></span></b> • Minimal blueprint base</div>
+        <div class="sig">Accent: <b id="accentName">cyan</b></div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    /*
+      Minimal, tasteful JS:
+      - SPA-like navigation (hash-based) to keep one file with 5 sections
+      - Accent toggle (between --accent-1 and --accent-2)
+      - Subtle glow pulse for elements that carry the accent
+    */
+
+    const sections = Array.from(document.querySelectorAll('main > section'));
+    const navLinks = Array.from(document.querySelectorAll('[data-link]'));
+    const accentName = document.getElementById('accentName');
+    const root = document.documentElement;
+
+    function showSection(id) {
+      sections.forEach(s => s.hidden = (s.id !== id));
+      document.querySelectorAll('.nav-btn').forEach(b => b.setAttribute('data-active', String(b.getAttribute('href') === '#' + id)));
+      if (!location.hash || location.hash.substring(1) !== id) {
+        history.replaceState(null, '', '#' + id);
+      }
+    }
+
+    function initRoute() {
+      const id = (location.hash || '#home').substring(1);
+      const target = sections.find(s => s.id === id) ? id : 'home';
+      showSection(target);
+    }
+
+    // Accent toggling (keeps to 1–2 colors only)
+    let useAlt = false;
+    function setAccent() {
+      const val = getComputedStyle(root).getPropertyValue('--' + (useAlt ? 'accent-2' : 'accent-1')).trim();
+      root.style.setProperty('--accent-active', val);
+      accentName.textContent = useAlt ? 'magenta' : 'cyan';
+    }
+
+    document.getElementById('toggleAccent').addEventListener('click', () => {
+      useAlt = !useAlt; setAccent();
+      // Brief glow pulse on toggle
+      pulseGlow();
+    });
+
+    function pulseGlow() {
+      const glowTargets = document.querySelectorAll('.brand .dot, .badge .pulse, .underline::after');
+      // Fallback pulse on obvious targets
+      document.querySelectorAll('.brand .dot, .badge .pulse').forEach(el => {
+        el.animate([
+          { filter: 'brightness(1)' },
+          { filter: 'brightness(1.6)' },
+          { filter: 'brightness(1)' }
+        ], { duration: 700, easing: 'ease-in-out' });
+      });
+    }
+
+    // Subtle automatic micro-glow for accents
+    setInterval(() => {
+      const dot = document.querySelector('.brand .dot');
+      if (!dot) return;
+      dot.animate([
+        { boxShadow: getComputedStyle(dot).boxShadow },
+        { boxShadow: '0 0 0px var(--accent-active), 0 0 22px var(--accent-active), 0 0 40px var(--accent-active)' },
+        { boxShadow: getComputedStyle(dot).boxShadow }
+      ], { duration: 2200, easing: 'ease-in-out' });
+    }, 4500);
+
+    // Wire up nav
+    navLinks.forEach(a => a.addEventListener('click', (e) => {
+      const href = a.getAttribute('href') || '';
+      if (href.startsWith('#')) {
+        e.preventDefault();
+        const id = href.substring(1);
+        showSection(id);
+      }
+    }));
+
+    // Set year, init route & accent
+    document.getElementById('year').textContent = new Date().getFullYear();
+    window.addEventListener('hashchange', initRoute);
+    initRoute();
+    setAccent();
+  </script>
+</body>
+</html>
+
+
 
