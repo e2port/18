@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>e2v3</title>
+  <meta name="description" content="Grey blueprint layout with light cyberpunk accents. Five-page base template." />
+
+  <link rel="icon" href="/18/img/e2v3.ico" type="image/x-icon" sizes="any" />
+  <!--
+  • Files you’ll add:
+    - /img/e2v3.ico        → shown as the browser tab icon (favicon)
+    - /img/e2v3.webp       → your logo shown in the header (glow reacts to accent)
+    - /img/university.webp → placeholder image (Credentials: University Graduate)
+    - /img/tefl.webp       → placeholder image (Credentials: TEFL Certified)
+    - /img/cert1.webp      → placeholder #1 (Credentials: Digital Certifications)
+    - /img/cert2.webp      → placeholder #2 (Credentials: Digital Certifications)
+
+  • Accent colors (3 choices now): magenta, silver, cyan.
+    - Click the “Accent” button in the header to cycle through them.
+    - The logo and subtle UI lights “glow” in the active accent color.
+
+  • Projects (#about): now 8 project cards; each opens a new tab to:
+      /pages/002.html … /pages/009.html
+    (Make sure those pages exist in your site.)
+
+  • Credential images (#work): each card shows a placeholder image from /img/.
+    The “Digital Certifications” box shows two placeholders side-by-side.
+
+  • Single-file SPA behavior:
+    - Navigation uses hash routes (e.g., #home, #about, #services, #work, #contact).
+    - All content is here in this one HTML file.
+
+  • Where to customize text:
+    - Hero title/subtitle → #home
+    - Projects labels/links → #about
+    - Services bullets → #services
+    - Credentials text/images → #work
+    - Contact form placeholders → #contact
+
+  • Styling:
+    - Global CSS variables are at the top (look for :root).
+    - Accent is controlled by --accent-active (auto-updated by JS).
+
+   ──────────────────────────────────────────────────────────────────────────────
+  -->
+
+  <style>
+    /* =========================
+       THEME VARIABLES
+       ========================= */
+    :root {
+      --bg-0: #0f0f10;       /* page background */
+      --bg-1: #151517;       /* panel background */
+      --bg-2: #1b1c1f;       /* card background */
+      --ink-1: #d9d9dc;      /* primary text */
+      --ink-2: #a6a7aa;      /* secondary text */
+      --grid-1: rgba(255,255,255,0.04); /* light grid lines */
+      --grid-2: rgba(255,255,255,0.03); /* fine grid lines */
+        /* stronger multi-layer glow */
+      --glow: 0 0 4px var(--accent-active),
+              0 0 28px var(--accent-active),
+              0 0 56px var(--accent-active),
+              0 0 84px color-mix(in srgb, var(--accent-active) 70%, transparent);
+
+
+      /* 🎨 Accent palette (now THREE options) */
+      --accent-magenta: #ff2bd6;
+      --accent-silver:  #e6e7eb;  /* silverish white */
+      --accent-cyan:    #30e0ff;
+
+      /* Active accent (JS cycles this variable) */
+      --accent-active: var(--accent-cyan);
+
+      --radius-xl: 18px;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 8px;
+      --shadow-soft: 0 6px 22px rgba(0,0,0,0.35);
+      --shadow-edge: 0 0 0 1px rgba(255,255,255,0.05) inset;
+      --outline: 1px dashed rgba(255,255,255,0.1); /* blueprint stroke */
+      --glow: 0 0 0px var(--accent-active), 0 0 16px var(--accent-active), 0 0 28px var(--accent-active);
+    }
+
+    /* =========================
+       GLOBAL RESET / BASE
+       ========================= */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      color: var(--ink-1);
+      background: var(--bg-0);
+      font: 15.5px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      letter-spacing: 0.2px;
+      /* Blueprint-style grid background (greyscale) */
+      background-image:
+        linear-gradient(var(--bg-0), var(--bg-0)),
+        repeating-linear-gradient(0deg, var(--grid-2) 0, var(--grid-2) 1px, transparent 1px, transparent 20px),
+        repeating-linear-gradient(90deg, var(--grid-2) 0, var(--grid-2) 1px, transparent 1px, transparent 20px),
+        repeating-linear-gradient(0deg, var(--grid-1) 0, var(--grid-1) 1px, transparent 1px, transparent 100px),
+        repeating-linear-gradient(90deg, var(--grid-1) 0, var(--grid-1) 1px, transparent 1px, transparent 100px);
+      background-blend-mode: normal, screen, screen, screen, screen;
+      background-attachment: fixed;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+
+    /* =========================
+       LAYOUT
+       ========================= */
+    .app-shell {
+      min-height: 100dvh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+
+    header {
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: blur(8px);
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.0));
+      border-bottom: var(--outline);
+    }
+
+    .topbar {
+      max-width: 1100px; margin: 0 auto; padding: 14px 20px;
+      display: grid; grid-template-columns: 200px 1fr 240px; gap: 16px; align-items: center;
+    }
+
+    .brand {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 12px; border: var(--outline); border-radius: var(--radius-md);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
+      box-shadow: var(--shadow-edge);
+    }
+    /* Container matches your page width */
+.laser-wrap {
+  max-width: 1100px;
+  margin: 42px auto 28px;
+  padding: 0 20px;
+}
+
+/* The beam */
+.laser {
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--accent-active) 25%, white) 10%,
+    var(--accent-active) 50%,
+    color-mix(in srgb, var(--accent-active) 25%, white) 90%,
+    transparent 100%
+  );
+  background-size: 400% 100%;
+  filter: drop-shadow(0 0 12px var(--accent-active)) drop-shadow(0 0 28px var(--accent-active));
+  animation: laserScan 6s linear infinite;
+  overflow: hidden;
+}
+
+/* Soft halo around the beam */
+.laser::after {
+  content: "";
+  position: absolute;
+  inset: -16px 0;
+  background: radial-gradient(ellipse at center, var(--accent-active) 0%, rgba(0,0,0,0) 70%);
+  filter: blur(18px);
+  opacity: .28;
+  pointer-events: none;
+}
+
+@keyframes laserScan {
+  from { background-position: 0% 0; }
+  to   { background-position: 400% 0; }
+}
+
+.brand .logo {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: url('/img/e2v3.webp') center/contain no-repeat;
+  position: relative;
+  filter: drop-shadow(0 0 14px var(--accent-active)) drop-shadow(0 0 34px var(--accent-active));
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.08) inset;
+  animation: neonPulse 5s ease-in-out infinite; /* longer pulse */
+}
+.brand .logo::after {
+  content: "";
+  position: absolute;
+  inset: -16px;
+  background: radial-gradient(circle at 50% 50%, var(--accent-active) 0%, rgba(0,0,0,0) 70%);
+  filter: blur(22px);
+  opacity: .50; /* brighter aura */
+  z-index: -1;
+}
+
+@keyframes neonPulse {
+  0%, 100% { filter: drop-shadow(0 0 14px var(--accent-active)) drop-shadow(0 0 34px var(--accent-active)); }
+  50%      { filter: drop-shadow(0 0 24px var(--accent-active)) drop-shadow(0 0 72px var(--accent-active)); }
+}
+
+.underline::after {
+  height: 3px; /* was 2px */
+  opacity: .75; /* brighter */
+}
+
+
+    .brand h1 { font-size: 15px; margin: 0; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--ink-1); }
+    .brand span { color: var(--ink-2); font-weight: 400; }
+
+    nav { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+    .nav-btn {
+      position: relative;
+      padding: 10px 14px; border-radius: var(--radius-sm);
+      border: var(--outline);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
+      color: var(--ink-1);
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+      box-shadow: var(--shadow-edge);
+    }
+    .nav-btn[data-active="true"] { border-color: rgba(255,255,255,0.22); }
+    .nav-btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-soft), var(--shadow-edge); }
+    .nav-btn:focus-visible { outline: 2px solid var(--accent-active); }
+
+    .quick-cta { justify-self: end; display: flex; gap: 10px; align-items: center; }
+    .cta {
+      padding: 10px 14px; border-radius: var(--radius-sm);
+      border: 1px solid rgba(255,255,255,0.14);
+      background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
+      color: var(--ink-1); font-weight: 600; letter-spacing: .3px;
+      box-shadow: var(--shadow-edge);
+      transition: box-shadow .2s ease, transform .2s ease;
+      cursor: pointer;
+    }
+    .cta:hover { box-shadow: var(--shadow-soft), var(--shadow-edge); transform: translateY(-1px); }
+    .ghost { background: transparent; }
+
+    main { max-width: 1100px; margin: 28px auto 40px; padding: 0 20px; }
+
+    /* Panel / card styling */
+    .panel {
+      border: var(--outline);
+      border-radius: var(--radius-xl);
+      padding: 22px; background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      box-shadow: var(--shadow-edge);
+    }
+
+    .hero {
+      display: grid; grid-template-columns: 1.2fr .8fr; gap: 22px; align-items: center;
+    }
+    .hero h2 { font-size: 28px; margin: 0 0 6px; letter-spacing: .6px; }
+    .muted { color: var(--ink-2); }
+
+    .hero .badge {
+      display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2);
+      padding: 8px 12px; border-radius: 999px; border: var(--outline); box-shadow: var(--shadow-edge);
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.00));
+    }
+    .badge .pulse {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--accent-active); box-shadow: var(--glow);
+    }
+
+    .grid { margin-top: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    /* 4-column variant for Projects */
+    .grid.projects { grid-template-columns: repeat(4, 1fr); }
+
+    .card {
+      border: var(--outline); border-radius: var(--radius-lg); padding: 18px;
+      background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
+      box-shadow: var(--shadow-edge);
+      transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+      min-height: 160px;
+    }
+    .card:hover { transform: translateY(-2px); box-shadow: var(--shadow-soft), var(--shadow-edge); border-color: rgba(255,255,255,0.2); }
+    .card h3 { margin: 0 0 6px; font-size: 16px; letter-spacing: .4px; }
+    .card p { margin: 0; color: var(--ink-2); }
+
+    /* Make project cards clickable blocks */
+    .link-card { display: block; }
+    .link-card h3 { display: flex; align-items: center; gap: 8px; }
+    .link-card h3::after {
+      content: "↗"; font-size: 13px; color: var(--accent-active); opacity: .8;
+    }
+
+    /* Simple thumbnail row for credentials */
+    .thumb-row { display: flex; gap: 10px; margin-top: 10px; align-items: center; flex-wrap: wrap; }
+    .thumb {
+      width: 100%; max-width: 120px; aspect-ratio: 4 / 3; object-fit: cover;
+      border-radius: 8px; border: 1px solid rgba(255,255,255,0.14);
+      box-shadow: var(--shadow-edge);
+      background: #111;
+    }
+
+    /* Section visibility for SPA-like behaviour */
+    section[hidden] { display: none !important; }
+    <div class="laser-wrap" aria-hidden="true">
+      <div class="laser"></div>
+    </div>
+
+    /* Footer */
+    footer {
+      border-top: var(--outline);
+      background: linear-gradient(0deg, rgba(255,255,255,0.06), rgba(255,255,255,0.0));
+    }
+    .ftr-wrap { max-width: 1100px; margin: 0 auto; padding: 18px 20px; color: var(--ink-2); font-size: 13px; display: flex; gap: 12px; align-items: center; justify-content: space-between; }
+    .sig { color: var(--ink-2); }
+    .sig b { color: var(--ink-1); }
+
+    /* Responsive */
+    @media (max-width: 960px) {
+      .topbar { grid-template-columns: 1fr; gap: 10px; }
+      .quick-cta { justify-self: start; }
+      .hero { grid-template-columns: 1fr; }
+      .grid { grid-template-columns: 1fr 1fr; }
+      .grid.projects { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 620px) {
+      .grid, .grid.projects { grid-template-columns: 1fr; }
+    }
+
+    /* Subtle accent underline */
+    .underline { position: relative; display: inline-block; }
+    .underline::after {
+      content: ""; position: absolute; left: 0; bottom: -3px; height: 2px; width: 100%;
+      background: linear-gradient(90deg, transparent, var(--accent-active), transparent);
+      filter: drop-shadow(0 0 6px var(--accent-active));
+      opacity: .55;
+    }
+
+    /* Tiny utility dot */
+    .accent-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-active); box-shadow: var(--glow); display: inline-block; vertical-align: middle; margin-right: 8px; }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- ======================
+         HEADER / NAV
+         ====================== -->
+    <header>
+      <div class="topbar">
+        <a class="brand" href="#home" data-link aria-label="Go to Home">
+          <span class="logo" aria-hidden="true"></span>
+          <h1>CV<span>•E2</span></h1>
+        </a>
+        <nav aria-label="Primary">
+          <a class="nav-btn" data-link href="#home" data-active="true">Home</a>
+          <a class="nav-btn" data-link href="#about">Projects</a>
+          <a class="nav-btn" data-link href="#services">Services</a>
+          <a class="nav-btn" data-link href="#work">Credentials</a>
+          <a class="nav-btn" data-link href="#contact">Contact</a>
+        </nav>
+        <div class="quick-cta">
+          <button class="cta ghost" id="toggleAccent" title="Toggle accent color">Accent</button>
+          <a class="cta" href="#contact" data-link aria-label="Contact">בס"ד</a>
+        </div>
+      </div>
+    </header>
+
+    <!-- ======================
+         MAIN CONTENT
+         ====================== -->
+    <main>
+      <!-- HOME -->
+      <section id="home" class="panel">
+        <div class="hero">
+          <div>
+            <div class="badge"><span class="pulse" aria-hidden="true"></span> Digital Portfolio • Live CV</div>
+            <h2><span class="underline">Tech Professional, at your service</span></h2>
+            <p class="muted">Welcome to the third version of my digital portfolio which also acts as my live CV.</p>
+            <p class="muted">I love many things, and technology is one of them.</p>
+          </div>
+          <div>
+            <div class="card" style="min-height: 220px; display: grid; place-items: center; text-align: center;">
+              <div>
+                <div class="accent-dot" aria-hidden="true"></div>
+                <strong>Project Showcase</strong>
+                <p class="muted">Check out some of the cool projects that are free to download.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid">
+          <article class="card">
+            <h3>Digital Automation</h3>
+            <p>Too many tools are available to the masses—let me help you cut through the noise.</p>
+          </article>
+          <article class="card">
+            <h3>Good Faith</h3>
+            <p>Here to help, and I’ll do just that.</p>
+          </article>
+          <article class="card">
+            <h3>Knowledgeable</h3>
+            <p>Broad, hands-on understanding across science and technology.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- PROJECTS -->
+      <section id="about" class="panel" hidden>
+        <h2 class="underline">Projects</h2>
+        <p class="muted">This page is under construction and will serve as my project gallery. The cards below already open dedicated pages in a new tab.</p>
+
+        <!-- 🧭 Eight project cards → open /pages/002.html … /pages/009.html in a new tab -->
+        <div class="grid projects">
+          <a class="card link-card" href="/pages/002.html" target="_blank" rel="noopener">
+            <h3>Project 002</h3>
+            <p>Mini-apps (JavaScript)</p>
+          </a>
+          <a class="card link-card" href="/pages/003.html" target="_blank" rel="noopener">
+            <h3>Project 003</h3>
+            <p>Mini-apps (Python)</p>
+          </a>
+          <a class="card link-card" href="/pages/004.html" target="_blank" rel="noopener">
+            <h3>Project 004</h3>
+            <p>PDF Documents</p>
+          </a>
+          <a class="card link-card" href="/pages/005.html" target="_blank" rel="noopener">
+            <h3>Project 005</h3>
+            <p>Mini-games (JS/HTML/CSS)</p>
+          </a>
+          <a class="card link-card" href="/pages/006.html" target="_blank" rel="noopener">
+            <h3>Project 006</h3>
+            <p>Data Tools</p>
+          </a>
+          <a class="card link-card" href="/pages/007.html" target="_blank" rel="noopener">
+            <h3>Project 007</h3>
+            <p>Creative Coding</p>
+          </a>
+          <a class="card link-card" href="/pages/008.html" target="_blank" rel="noopener">
+            <h3>Project 008</h3>
+            <p>Design Systems</p>
+          </a>
+          <a class="card link-card" href="/pages/009.html" target="_blank" rel="noopener">
+            <h3>Project 009</h3>
+            <p>Utilities & CLI</p>
+          </a>
+        </div>
+      </section>
+
+      <!-- SERVICES -->
+      <section id="services" class="panel" hidden>
+        <h2 class="underline">Services</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>Consulting</h3>
+            <p>Simple, practical insights with measurable impact.</p>
+          </div>
+          <div class="card">
+            <h3>Measurable</h3>
+            <p>Clear metrics that demonstrate performance and value.</p>
+          </div>
+          <div class="card">
+            <h3>High-level English</h3>
+            <p>Native-level English; US-educated.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- CREDENTIALS -->
+      <section id="work" class="panel" hidden>
+        <h2 class="underline">Mission Statement</h2>
+        <p class="muted">This portfolio serves as a live CV. It highlights how modern, often free and open-source tools let you create powerful digital assets—and where I can help.</p>
+
+        <div class="grid">
+          <div class="card">
+            <h3>University Graduate</h3>
+            <p>B.Sc. Degree from a respected State University.</p>
+            <!-- 🔳 Placeholder image -->
+            <div class="thumb-row">
+              <img class="thumb" src="/18/img/university.webp" alt="University certificate placeholder image" />
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>TEFL Certified</h3>
+            <p>Trained to assist those whose first language is not English.</p>
+            <!-- 🔳 Placeholder image -->
+            <div class="thumb-row">
+              <img class="thumb" src="/18/img/tefl.webp" alt="TEFL certificate placeholder image" />
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Digital Certifications</h3>
+            <p>Certified Data Scientist & Machine Learning Engineer (Python / SQL).<br/>Certified and well-versed with Microsoft products.</p>
+            <!-- 🔳 Two placeholder images -->
+            <div class="thumb-row">
+              <img class="thumb" src="/18/img/cert1.webp" alt="Digital certification placeholder image 1" />
+              <img class="thumb" src="/18/img/cert2.webp" alt="Digital certification placeholder image 2" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONTACT -->
+      <section id="contact" class="panel" hidden>
+        <h2 class="underline">Contact</h2>
+        <p class="muted">Please feel free to reach out; worst-case scenario, I won’t answer.</p>
+        <form class="grid" style="grid-template-columns: 1fr 1fr; gap: 16px;">
+          <label class="card" style="display:block;">
+            <span>Name</span>
+            <input required type="text" placeholder="Your name" 
+              style="margin-top:8px; width:100%; padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.14); background:var(--bg-1); color:var(--ink-1); box-shadow:var(--shadow-edge);"/>
+          </label>
+          <label class="card" style="display:block;">
+            <span>Email</span>
+            <input required type="email" placeholder="name@example.com" 
+              style="margin-top:8px; width:100%; padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.14); background:var(--bg-1); color:var(--ink-1); box-shadow:var(--shadow-edge);"/>
+          </label>
+          <label class="card" style="grid-column: 1 / -1; display:block;">
+            <span>Message</span>
+            <textarea rows="5" placeholder="How can we help?" 
+              style="margin-top:8px; width:100%; padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.14); background:var(--bg-1); color:var(--ink-1); box-shadow:var(--shadow-edge);"></textarea>
+          </label>
+          <div style="grid-column: 1 / -1; display:flex; gap:10px;">
+            <button class="cta" type="submit">Send</button>
+            <button class="cta ghost" type="reset">Reset</button>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <!-- ======================
+         FOOTER
+         ====================== -->
+    <footer>
+      <div class="ftr-wrap">
+        <div class="sig">© <b><span id="year"></span></b> • e2 digital portfolio</div>
+        <div class="sig">Accent: <b id="accentName" aria-live="polite">cyan</b></div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ======================
+       MINIMAL, TASTEFUL JS
+       ====================== -->
+  <script>
+    /*
+      Features:
+      - SPA-like navigation (hash-based) to keep one file with 5 sections
+      - Accent cycler (three options: magenta, silver, cyan)
+      - Subtle glow pulse for accented elements (logo, badge)
+    */
+
+    const sections = Array.from(document.querySelectorAll('main > section'));
+    const navLinks = Array.from(document.querySelectorAll('[data-link]'));
+    const accentNameEl = document.getElementById('accentName');
+    const root = document.documentElement;
+
+    /* ── SPA navigation helpers ───────────────────────────────────────────── */
+    function showSection(id) {
+      sections.forEach(s => s.hidden = (s.id !== id));
+      document.querySelectorAll('.nav-btn').forEach(b => {
+        b.setAttribute('data-active', String(b.getAttribute('href') === '#' + id));
+      });
+      if (!location.hash || location.hash.substring(1) !== id) {
+        history.replaceState(null, '', '#' + id);
+      }
+    }
+    function initRoute() {
+      const id = (location.hash || '#home').substring(1);
+      const target = sections.find(s => s.id === id) ? id : 'home';
+      showSection(target);
+    }
+    navLinks.forEach(a => a.addEventListener('click', (e) => {
+      const href = a.getAttribute('href') || '';
+      if (href.startsWith('#')) {
+        e.preventDefault();
+        showSection(href.substring(1));
+      }
+    }));
+
+    /* ── Accent Color Cycling (3 options) ───────────────────────────────── */
+    const accents = [
+      { key: 'magenta', var: '--accent-magenta' },
+      { key: 'silver',  var: '--accent-silver'  },
+      { key: 'cyan',    var: '--accent-cyan'    }
+    ];
+    let accentIndex = 2; // start at cyan
+
+    function setAccent(index = accentIndex) {
+      const acc = accents[index];
+      const val = getComputedStyle(root).getPropertyValue(acc.var).trim();
+      root.style.setProperty('--accent-active', val);
+      accentNameEl.textContent = acc.key;
+    }
+
+    document.getElementById('toggleAccent').addEventListener('click', () => {
+      accentIndex = (accentIndex + 1) % accents.length;
+      setAccent(accentIndex);
+      pulseGlow();
+    });
+
+    /* ── Subtle glow animations ──────────────────────────────────────────── */
+    function pulseGlow() {
+      document.querySelectorAll('.brand .logo, .badge .pulse').forEach(el => {
+        el.animate([
+          { filter: 'brightness(1)' },
+          { filter: 'brightness(1.6)' },
+          { filter: 'brightness(1)' }
+        ], { duration: 700, easing: 'ease-in-out' });
+      });
+    }
+    // Ambient micro-glow on the header logo
+    setInterval(() => {
+      const logo = document.querySelector('.brand .logo');
+      if (!logo) return;
+      logo.animate([
+        { filter: getComputedStyle(logo).filter },
+        { filter: 'drop-shadow(0 0 12px var(--accent-active)) drop-shadow(0 0 26px var(--accent-active))' },
+        { filter: getComputedStyle(logo).filter }
+      ], { duration: 2000, easing: 'ease-in-out' });
+    }, 4500);
+
+    /* ── Init ────────────────────────────────────────────────────────────── */
+    document.getElementById('year').textContent = new Date().getFullYear();
+    window.addEventListener('hashchange', initRoute);
+    initRoute();
+    setAccent(accentIndex);
+  </script>
+</body>
+</html>
