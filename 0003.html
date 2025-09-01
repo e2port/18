@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,43 +7,42 @@
   <title>e2v3</title>
   <meta name="description" content="Grey blueprint layout with light cyberpunk accents. Five-page base template." />
 
-  <link rel="icon" href="/18/img/e2v3.ico" type="image/x-icon" sizes="any" />
+  <!-- ✅ Favicon (place your file at /18/img/e2v3.ico) -->
+  <link rel="icon" href="/18/img/e2v3.png" type="image/x-icon" sizes="any" />
+
   <!--
-  • Files you’ll add:
-    - /img/e2v3.ico        → shown as the browser tab icon (favicon)
-    - /img/e2v3.webp       → your logo shown in the header (glow reacts to accent)
-    - /img/university.webp → placeholder image (Credentials: University Graduate)
-    - /img/tefl.webp       → placeholder image (Credentials: TEFL Certified)
-    - /img/cert1.webp      → placeholder #1 (Credentials: Digital Certifications)
-    - /img/cert2.webp      → placeholder #2 (Credentials: Digital Certifications)
+  ──────────────────────────────────────────────────────────────────────────────
+  BEGINNER NOTES (read me, then delete this comment if you want)
+  ----------------------------------------------------------------
+  • Image files you’ll add:
+      /18/img/e2v3.webp    → header logo (gets accent glow)
+      /18/img/university.webp
+      /18/img/tefl.webp
+      /18/img/cert1.webp
+      /18/img/cert2.webp
 
-  • Accent colors (3 choices now): magenta, silver, cyan.
-    - Click the “Accent” button in the header to cycle through them.
-    - The logo and subtle UI lights “glow” in the active accent color.
+  • Accents: three rotating accents (magenta, silver, cyan). Click “Accent” to cycle.
+    The logo, underline, and new “laser” bar pick up the active accent color.
 
-  • Projects (#about): now 8 project cards; each opens a new tab to:
-      /pages/002.html … /pages/009.html
-    (Make sure those pages exist in your site.)
+  • Projects (#about): 8 cards already link to /pages/002.html … /pages/009.html in a new tab.
 
-  • Credential images (#work): each card shows a placeholder image from /img/.
-    The “Digital Certifications” box shows two placeholders side-by-side.
+  • Credentials (#work): click any box to open a fullscreen preview (title, text, images),
+    click outside or “×” to close. This lets you view credentials up close.
 
-  • Single-file SPA behavior:
-    - Navigation uses hash routes (e.g., #home, #about, #services, #work, #contact).
-    - All content is here in this one HTML file.
+  • Contact (#contact): replaced the form with a friendly note + email link. 
+    👉 Replace EMAIL_ADDRESS_HERE with your real email.
 
-  • Where to customize text:
-    - Hero title/subtitle → #home
-    - Projects labels/links → #about
-    - Services bullets → #services
-    - Credentials text/images → #work
-    - Contact form placeholders → #contact
+  • Where to edit content:
+    - Hero text → #home
+    - Project names → #about
+    - Services list → #services (now expanded)
+    - Credential text & images → #work
+    - Contact message & email → #contact
 
-  • Styling:
-    - Global CSS variables are at the top (look for :root).
-    - Accent is controlled by --accent-active (auto-updated by JS).
+  • Structure: hash-based routes (#home/#about/#services/#work/#contact) keep this a single file.
 
-   ──────────────────────────────────────────────────────────────────────────────
+  • Tip: If some CSS features (like color-mix) aren’t supported in an older browser, it’ll still look fine.
+  ──────────────────────────────────────────────────────────────────────────────
   -->
 
   <style>
@@ -57,14 +57,8 @@
       --ink-2: #a6a7aa;      /* secondary text */
       --grid-1: rgba(255,255,255,0.04); /* light grid lines */
       --grid-2: rgba(255,255,255,0.03); /* fine grid lines */
-        /* stronger multi-layer glow */
-      --glow: 0 0 4px var(--accent-active),
-              0 0 28px var(--accent-active),
-              0 0 56px var(--accent-active),
-              0 0 84px color-mix(in srgb, var(--accent-active) 70%, transparent);
 
-
-      /* 🎨 Accent palette (now THREE options) */
+      /* 🎨 Accent palette (THREE options) */
       --accent-magenta: #ff2bd6;
       --accent-silver:  #e6e7eb;  /* silverish white */
       --accent-cyan:    #30e0ff;
@@ -79,7 +73,12 @@
       --shadow-soft: 0 6px 22px rgba(0,0,0,0.35);
       --shadow-edge: 0 0 0 1px rgba(255,255,255,0.05) inset;
       --outline: 1px dashed rgba(255,255,255,0.1); /* blueprint stroke */
-      --glow: 0 0 0px var(--accent-active), 0 0 16px var(--accent-active), 0 0 28px var(--accent-active);
+
+      /* 💡 Stronger multi-layer neon glow */
+      --glow: 0 0 6px var(--accent-active),
+              0 0 24px var(--accent-active),
+              0 0 48px var(--accent-active),
+              0 0 84px color-mix(in srgb, var(--accent-active) 70%, transparent);
     }
 
     /* =========================
@@ -133,76 +132,29 @@
       background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
       box-shadow: var(--shadow-edge);
     }
-    /* Container matches your page width */
-.laser-wrap {
-  max-width: 1100px;
-  margin: 42px auto 28px;
-  padding: 0 20px;
-}
 
-/* The beam */
-.laser {
-  position: relative;
-  height: 6px;
-  border-radius: 999px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    color-mix(in srgb, var(--accent-active) 25%, white) 10%,
-    var(--accent-active) 50%,
-    color-mix(in srgb, var(--accent-active) 25%, white) 90%,
-    transparent 100%
-  );
-  background-size: 400% 100%;
-  filter: drop-shadow(0 0 12px var(--accent-active)) drop-shadow(0 0 28px var(--accent-active));
-  animation: laserScan 6s linear infinite;
-  overflow: hidden;
-}
-
-/* Soft halo around the beam */
-.laser::after {
-  content: "";
-  position: absolute;
-  inset: -16px 0;
-  background: radial-gradient(ellipse at center, var(--accent-active) 0%, rgba(0,0,0,0) 70%);
-  filter: blur(18px);
-  opacity: .28;
-  pointer-events: none;
-}
-
-@keyframes laserScan {
-  from { background-position: 0% 0; }
-  to   { background-position: 400% 0; }
-}
-
-.brand .logo {
-  width: 32px; height: 32px; border-radius: 8px;
-  background: url('/img/e2v3.webp') center/contain no-repeat;
-  position: relative;
-  filter: drop-shadow(0 0 14px var(--accent-active)) drop-shadow(0 0 34px var(--accent-active));
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.08) inset;
-  animation: neonPulse 5s ease-in-out infinite; /* longer pulse */
-}
-.brand .logo::after {
-  content: "";
-  position: absolute;
-  inset: -16px;
-  background: radial-gradient(circle at 50% 50%, var(--accent-active) 0%, rgba(0,0,0,0) 70%);
-  filter: blur(22px);
-  opacity: .50; /* brighter aura */
-  z-index: -1;
-}
-
-@keyframes neonPulse {
-  0%, 100% { filter: drop-shadow(0 0 14px var(--accent-active)) drop-shadow(0 0 34px var(--accent-active)); }
-  50%      { filter: drop-shadow(0 0 24px var(--accent-active)) drop-shadow(0 0 72px var(--accent-active)); }
-}
-
-.underline::after {
-  height: 3px; /* was 2px */
-  opacity: .75; /* brighter */
-}
-
+    /* 🔰 Logo: /18/img/e2v3.webp with accent glow + pulsing */
+    .brand .logo {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: url('/18/img/e2v3.webp') center/contain no-repeat;
+      position: relative;
+      filter: drop-shadow(0 0 14px var(--accent-active)) drop-shadow(0 0 34px var(--accent-active));
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.08) inset;
+      animation: neonPulse 5s ease-in-out infinite;
+    }
+    .brand .logo::after {
+      content: "";
+      position: absolute;
+      inset: -16px;
+      background: radial-gradient(circle at 50% 50%, var(--accent-active) 0%, rgba(0,0,0,0) 70%);
+      filter: blur(22px);
+      opacity: .50;
+      z-index: -1;
+    }
+    @keyframes neonPulse {
+      0%, 100% { filter: drop-shadow(0 0 14px var(--accent-active)) drop-shadow(0 0 34px var(--accent-active)); }
+      50%      { filter: drop-shadow(0 0 26px var(--accent-active)) drop-shadow(0 0 78px var(--accent-active)); }
+    }
 
     .brand h1 { font-size: 15px; margin: 0; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--ink-1); }
     .brand span { color: var(--ink-2); font-weight: 400; }
@@ -218,7 +170,7 @@
       box-shadow: var(--shadow-edge);
     }
     .nav-btn[data-active="true"] { border-color: rgba(255,255,255,0.22); }
-    .nav-btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-soft), var(--shadow-edge); }
+    .nav-btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-soft), var(--shadow-edge), 0 0 0 1px var(--accent-active) inset; }
     .nav-btn:focus-visible { outline: 2px solid var(--accent-active); }
 
     .quick-cta { justify-self: end; display: flex; gap: 10px; align-items: center; }
@@ -231,7 +183,7 @@
       transition: box-shadow .2s ease, transform .2s ease;
       cursor: pointer;
     }
-    .cta:hover { box-shadow: var(--shadow-soft), var(--shadow-edge); transform: translateY(-1px); }
+    .cta:hover { box-shadow: var(--shadow-soft), var(--shadow-edge), 0 0 0 1px var(--accent-active) inset; transform: translateY(-1px); }
     .ghost { background: transparent; }
 
     main { max-width: 1100px; margin: 28px auto 40px; padding: 0 20px; }
@@ -277,9 +229,7 @@
     /* Make project cards clickable blocks */
     .link-card { display: block; }
     .link-card h3 { display: flex; align-items: center; gap: 8px; }
-    .link-card h3::after {
-      content: "↗"; font-size: 13px; color: var(--accent-active); opacity: .8;
-    }
+    .link-card h3::after { content: "↗"; font-size: 13px; color: var(--accent-active); opacity: .8; }
 
     /* Simple thumbnail row for credentials */
     .thumb-row { display: flex; gap: 10px; margin-top: 10px; align-items: center; flex-wrap: wrap; }
@@ -292,9 +242,91 @@
 
     /* Section visibility for SPA-like behaviour */
     section[hidden] { display: none !important; }
-    <div class="laser-wrap" aria-hidden="true">
-      <div class="laser"></div>
-    </div>
+
+    /* =========================
+       LASER BAR (above footer)
+       ========================= */
+    .laser-wrap {
+      max-width: 1100px;
+      margin: 42px auto 28px;
+      padding: 0 20px;
+    }
+    .laser {
+      position: relative;
+      height: 6px;
+      border-radius: 999px;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        color-mix(in srgb, var(--accent-active) 25%, white) 10%,
+        var(--accent-active) 50%,
+        color-mix(in srgb, var(--accent-active) 25%, white) 90%,
+        transparent 100%
+      );
+      background-size: 400% 100%;
+      filter: drop-shadow(0 0 12px var(--accent-active)) drop-shadow(0 0 28px var(--accent-active));
+      animation: laserScan 6s linear infinite;
+      overflow: hidden;
+    }
+    .laser::after {
+      content: "";
+      position: absolute;
+      inset: -16px 0;
+      background: radial-gradient(ellipse at center, var(--accent-active) 0%, rgba(0,0,0,0) 70%);
+      filter: blur(18px);
+      opacity: .28;
+      pointer-events: none;
+    }
+    @keyframes laserScan {
+      from { background-position: 0% 0; }
+      to   { background-position: 400% 0; }
+    }
+
+    /* =========================
+       MODAL (credentials zoom)
+       ========================= */
+    dialog.modal {
+      border: none;
+      padding: 0;
+      width: min(92vw, 1000px);
+      max-width: 1000px;
+      background: transparent;
+    }
+    dialog.modal::backdrop {
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(2px);
+    }
+    .modal-card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      border: var(--outline);
+      border-radius: 18px;
+      box-shadow: var(--shadow-soft), var(--shadow-edge), 0 0 0 1px rgba(255,255,255,0.15) inset;
+      padding: 18px;
+      color: var(--ink-1);
+      max-height: 90vh;
+      overflow: auto;
+    }
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px;
+      border-bottom: 1px dashed rgba(255,255,255,0.18); padding-bottom: 10px;
+    }
+    .modal-title { margin: 0; font-size: 18px; letter-spacing: .4px; }
+    .modal-x {
+      background: transparent; color: var(--ink-1); border: 1px solid rgba(255,255,255,0.18);
+      width: 34px; height: 34px; border-radius: 10px; cursor: pointer;
+      box-shadow: var(--shadow-edge);
+    }
+    .modal-x:hover { box-shadow: var(--shadow-soft), var(--shadow-edge); border-color: var(--accent-active); }
+    .modal-images {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px;
+    }
+    .modal-images img {
+      width: 100%; height: auto; border-radius: 10px; border: 1px solid rgba(255,255,255,0.18);
+      box-shadow: var(--shadow-edge);
+    }
+    @media (max-width: 720px) {
+      .modal-images { grid-template-columns: 1fr; }
+    }
 
     /* Footer */
     footer {
@@ -317,13 +349,13 @@
       .grid, .grid.projects { grid-template-columns: 1fr; }
     }
 
-    /* Subtle accent underline */
+    /* Subtle accent underline (thicker/brighter) */
     .underline { position: relative; display: inline-block; }
     .underline::after {
-      content: ""; position: absolute; left: 0; bottom: -3px; height: 2px; width: 100%;
+      content: ""; position: absolute; left: 0; bottom: -3px; height: 3px; width: 100%;
       background: linear-gradient(90deg, transparent, var(--accent-active), transparent);
-      filter: drop-shadow(0 0 6px var(--accent-active));
-      opacity: .55;
+      filter: drop-shadow(0 0 8px var(--accent-active));
+      opacity: .75;
     }
 
     /* Tiny utility dot */
@@ -437,7 +469,7 @@
         </div>
       </section>
 
-      <!-- SERVICES -->
+      <!-- SERVICES (expanded) -->
       <section id="services" class="panel" hidden>
         <h2 class="underline">Services</h2>
         <div class="grid">
@@ -446,44 +478,61 @@
             <p>Simple, practical insights with measurable impact.</p>
           </div>
           <div class="card">
-            <h3>Measurable</h3>
-            <p>Clear metrics that demonstrate performance and value.</p>
+            <h3>Data Science & ML</h3>
+            <p>EDA, feature engineering, model training, and clear evaluation.</p>
           </div>
           <div class="card">
-            <h3>High-level English</h3>
-            <p>Native-level English; US-educated.</p>
+            <h3>Web & App Prototypes</h3>
+            <p>Clean, fast prototypes using HTML/CSS/JS with modern UI patterns.</p>
+          </div>
+          <div class="card">
+            <h3>Automation & Integrations</h3>
+            <p>APIs, no-code/low-code, and Python scripts to reduce busywork.</p>
+          </div>
+          <div class="card">
+            <h3>Consumer-Protection Ops</h3>
+            <p>Process design, templates, and checklists for compliant workflows.</p>
+          </div>
+          <div class="card">
+            <h3>Security Hygiene</h3>
+            <p>Backups, basic hardening, and safer app isolation strategies.</p>
+          </div>
+          <div class="card">
+            <h3>Video & Creative</h3>
+            <p>Light editing, overlays, and motion graphics for explainers.</p>
+          </div>
+          <div class="card">
+            <h3>Tech Tutoring</h3>
+            <p>Hands-on help for beginners—practical, patient, and structured.</p>
           </div>
         </div>
       </section>
 
-      <!-- CREDENTIALS -->
+      <!-- CREDENTIALS (with zoom-on-click via modal) -->
       <section id="work" class="panel" hidden>
         <h2 class="underline">Mission Statement</h2>
         <p class="muted">This portfolio serves as a live CV. It highlights how modern, often free and open-source tools let you create powerful digital assets—and where I can help.</p>
 
-        <div class="grid">
-          <div class="card">
+        <div class="grid" id="credentialsGrid">
+          <div class="card cred-card" tabindex="0" role="button" aria-label="Open University Graduate credential">
             <h3>University Graduate</h3>
             <p>B.Sc. Degree from a respected State University.</p>
-            <!-- 🔳 Placeholder image -->
             <div class="thumb-row">
               <img class="thumb" src="/18/img/university.webp" alt="University certificate placeholder image" />
             </div>
           </div>
 
-          <div class="card">
+          <div class="card cred-card" tabindex="0" role="button" aria-label="Open TEFL Certified credential">
             <h3>TEFL Certified</h3>
             <p>Trained to assist those whose first language is not English.</p>
-            <!-- 🔳 Placeholder image -->
             <div class="thumb-row">
               <img class="thumb" src="/18/img/tefl.webp" alt="TEFL certificate placeholder image" />
             </div>
           </div>
 
-          <div class="card">
+          <div class="card cred-card" tabindex="0" role="button" aria-label="Open Digital Certifications">
             <h3>Digital Certifications</h3>
             <p>Certified Data Scientist & Machine Learning Engineer (Python / SQL).<br/>Certified and well-versed with Microsoft products.</p>
-            <!-- 🔳 Two placeholder images -->
             <div class="thumb-row">
               <img class="thumb" src="/18/img/cert1.webp" alt="Digital certification placeholder image 1" />
               <img class="thumb" src="/18/img/cert2.webp" alt="Digital certification placeholder image 2" />
@@ -492,33 +541,30 @@
         </div>
       </section>
 
-      <!-- CONTACT -->
+      <!-- CONTACT (no form; email + message) -->
       <section id="contact" class="panel" hidden>
         <h2 class="underline">Contact</h2>
-        <p class="muted">Please feel free to reach out; worst-case scenario, I won’t answer.</p>
-        <form class="grid" style="grid-template-columns: 1fr 1fr; gap: 16px;">
-          <label class="card" style="display:block;">
-            <span>Name</span>
-            <input required type="text" placeholder="Your name" 
-              style="margin-top:8px; width:100%; padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.14); background:var(--bg-1); color:var(--ink-1); box-shadow:var(--shadow-edge);"/>
-          </label>
-          <label class="card" style="display:block;">
-            <span>Email</span>
-            <input required type="email" placeholder="name@example.com" 
-              style="margin-top:8px; width:100%; padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.14); background:var(--bg-1); color:var(--ink-1); box-shadow:var(--shadow-edge);"/>
-          </label>
-          <label class="card" style="grid-column: 1 / -1; display:block;">
-            <span>Message</span>
-            <textarea rows="5" placeholder="How can we help?" 
-              style="margin-top:8px; width:100%; padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.14); background:var(--bg-1); color:var(--ink-1); box-shadow:var(--shadow-edge);"></textarea>
-          </label>
-          <div style="grid-column: 1 / -1; display:flex; gap:10px;">
-            <button class="cta" type="submit">Send</button>
-            <button class="cta ghost" type="reset">Reset</button>
+        <p class="muted" style="margin-bottom:14px;">
+          Thanks for visiting. If something here resonates, I’d love to hear from you.
+        </p>
+        <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;">
+          <div>
+            <div class="accent-dot" aria-hidden="true"></div>
+            <strong>Email me directly:</strong>
+            <p class="muted" id="emailText" style="margin:6px 0 0 0;">
+              <a id="emailLink" href="mailto:EMAIL_ADDRESS_HERE">EMAIL_ADDRESS_HERE</a>
+              <!-- Replace EMAIL_ADDRESS_HERE with your real address -->
+            </p>
           </div>
-        </form>
+          <button class="cta" id="copyEmailBtn" type="button" title="Copy email to clipboard">Copy email</button>
+        </div>
       </section>
     </main>
+
+    <!-- Laser bar just above the footer -->
+    <div class="laser-wrap" aria-hidden="true">
+      <div class="laser"></div>
+    </div>
 
     <!-- ======================
          FOOTER
@@ -531,15 +577,25 @@
     </footer>
   </div>
 
+  <!-- Credentials Modal -->
+  <dialog class="modal" id="zoomModal" aria-label="Credential preview">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalTitle">Preview</h3>
+        <button class="modal-x" id="modalClose" aria-label="Close">×</button>
+      </div>
+      <p class="muted" id="modalText"></p>
+      <div class="modal-images" id="modalImages"></div>
+    </div>
+  </dialog>
+
   <!-- ======================
-       MINIMAL, TASTEFUL JS
+       JS
        ====================== -->
   <script>
     /*
-      Features:
-      - SPA-like navigation (hash-based) to keep one file with 5 sections
-      - Accent cycler (three options: magenta, silver, cyan)
-      - Subtle glow pulse for accented elements (logo, badge)
+      SPA routing, accent cycling, stronger accent pulses, laser animation (CSS),
+      credentials zoom modal, copy-email helper.
     */
 
     const sections = Array.from(document.querySelectorAll('main > section'));
@@ -591,26 +647,90 @@
       pulseGlow();
     });
 
-    /* ── Subtle glow animations ──────────────────────────────────────────── */
+    /* ── Subtle but stronger glow animations ─────────────────────────────── */
     function pulseGlow() {
       document.querySelectorAll('.brand .logo, .badge .pulse').forEach(el => {
-        el.animate([
-          { filter: 'brightness(1)' },
-          { filter: 'brightness(1.6)' },
-          { filter: 'brightness(1)' }
-        ], { duration: 700, easing: 'ease-in-out' });
+        el.animate(
+          [{ filter: 'brightness(1)' }, { filter: 'brightness(1.7)' }, { filter: 'brightness(1)' }],
+          { duration: 900, easing: 'ease-in-out' }
+        );
       });
     }
-    // Ambient micro-glow on the header logo
+    // Ambient micro-glow on the header logo (slower/longer)
     setInterval(() => {
       const logo = document.querySelector('.brand .logo');
       if (!logo) return;
-      logo.animate([
-        { filter: getComputedStyle(logo).filter },
-        { filter: 'drop-shadow(0 0 12px var(--accent-active)) drop-shadow(0 0 26px var(--accent-active))' },
-        { filter: getComputedStyle(logo).filter }
-      ], { duration: 2000, easing: 'ease-in-out' });
-    }, 4500);
+      logo.animate(
+        [
+          { filter: getComputedStyle(logo).filter },
+          { filter: 'drop-shadow(0 0 24px var(--accent-active)) drop-shadow(0 0 72px var(--accent-active))' },
+          { filter: getComputedStyle(logo).filter }
+        ],
+        { duration: 3200, easing: 'ease-in-out' }
+      );
+    }, 6500);
+
+    /* ── Credentials zoom modal ──────────────────────────────────────────── */
+    const grid = document.getElementById('credentialsGrid');
+    const dlg = document.getElementById('zoomModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalText = document.getElementById('modalText');
+    const modalImages = document.getElementById('modalImages');
+    const modalClose = document.getElementById('modalClose');
+
+    function openModalFromCard(card) {
+      const titleEl = card.querySelector('h3');
+      const textEl  = card.querySelector('p');
+      const imgs    = card.querySelectorAll('img');
+
+      modalTitle.textContent = titleEl ? titleEl.textContent : 'Preview';
+      modalText.textContent  = textEl ? textEl.textContent : '';
+
+      modalImages.innerHTML = '';
+      imgs.forEach(img => {
+        const big = document.createElement('img');
+        big.src = img.src;
+        big.alt = img.alt || '';
+        modalImages.appendChild(big);
+      });
+
+      if (typeof dlg.showModal === 'function') {
+        dlg.showModal();
+      } else {
+        // Fallback if <dialog> not supported
+        dlg.setAttribute('open', '');
+      }
+    }
+    function closeModal() {
+      if (typeof dlg.close === 'function') dlg.close();
+      else dlg.removeAttribute('open');
+    }
+
+    grid.querySelectorAll('.cred-card').forEach(card => {
+      card.addEventListener('click', () => openModalFromCard(card));
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModalFromCard(card); }
+      });
+      card.style.cursor = 'zoom-in';
+    });
+    modalClose.addEventListener('click', closeModal);
+    dlg.addEventListener('click', (e) => { if (e.target === dlg) closeModal(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && dlg.open) closeModal(); });
+
+    /* ── Contact: copy email helper ──────────────────────────────────────── */
+    const copyBtn = document.getElementById('copyEmailBtn');
+    const emailLink = document.getElementById('emailLink');
+
+    copyBtn?.addEventListener('click', async () => {
+      const email = (emailLink?.textContent || '').trim();
+      try {
+        await navigator.clipboard.writeText(email);
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => (copyBtn.textContent = 'Copy email'), 1200);
+      } catch {
+        alert('Could not copy. Please copy manually.');
+      }
+    });
 
     /* ── Init ────────────────────────────────────────────────────────────── */
     document.getElementById('year').textContent = new Date().getFullYear();
@@ -620,3 +740,4 @@
   </script>
 </body>
 </html>
+```
