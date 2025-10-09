@@ -727,13 +727,6 @@ document.querySelectorAll('.cred-card').forEach(card => {
   });
   card.style.cursor = 'zoom-in';
 });
-    grid.querySelectorAll('.cred-card').forEach(card => {
-      card.addEventListener('click', () => openModalFromCard(card));
-      card.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModalFromCard(card); }
-      });
-      card.style.cursor = 'zoom-in';
-    });
     modalClose.addEventListener('click', closeModal);
     dlg.addEventListener('click', (e) => { if (e.target === dlg) closeModal(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && dlg.open) closeModal(); });
