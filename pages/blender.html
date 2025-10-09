@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -49,7 +48,6 @@
       background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.00));
     }
     .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-active); box-shadow: var(--glow);}
-    /* Gallery grid */
     .gallery-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 20px; }
     @media (max-width: 900px) { .gallery-grid { grid-template-columns: repeat(2,1fr); } }
     @media (max-width: 580px) { .gallery-grid { grid-template-columns: 1fr; } }
@@ -89,6 +87,39 @@
       color: var(--ink-2); font-size: 13px; text-align: center; padding: 24px 0 18px 0;
     }
     .sig b { color: var(--ink-1); }
+
+    /* ----------- Modal for YouTube ----------- */
+    .modal-bg {
+      display: none; position: fixed; z-index: 99; left: 0; top: 0; width: 100vw; height: 100vh;
+      background: rgba(16,18,26,0.80); backdrop-filter: blur(2px);
+      align-items: center; justify-content: center;
+      transition: background .2s;
+    }
+    .modal-bg.active { display: flex; }
+    .modal-box {
+      background: var(--bg-2);
+      border-radius: var(--radius-xl);
+      box-shadow: 0 16px 64px rgba(0,0,0,0.8), var(--shadow-soft);
+      padding: 0; max-width: 640px; width: 94vw;
+      max-height: 80vh; display: flex; flex-direction: column; align-items: center;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute; top: 8px; right: 14px; font-size: 28px; color: var(--ink-2);
+      background: none; border: none; cursor: pointer; z-index: 1;
+      filter: drop-shadow(0 0 3px #222);
+      transition: color 0.15s;
+    }
+    .modal-close:hover { color: var(--accent-active); }
+    .modal-iframe {
+      width: 100%; aspect-ratio: 16 / 9; border: none; border-radius: var(--radius-lg);
+      background: #000;
+      max-height: 65vh;
+      margin-top: 24px;
+    }
+    @media (max-width: 700px) {
+      .modal-box { max-width: 98vw; }
+    }
   </style>
 </head>
 <body>
@@ -102,7 +133,7 @@
       <p class="muted">Slowly getting familiar with the famous open-sourced software for 3D-designing. </p>
     </div>
     <div class="gallery-grid">
-      <!-- Example thumbnail cards. Replace with your own images/links/captions! -->
+      <!-- Existing thumbnail cards -->
       <a class="thumb-card" href="https://e2port.github.io/github.io/images/don2.png" target="_blank" rel="noopener">
         <img class="thumb-image" src="thumbs/cdon1.webp" alt="Closeup" />
         <div class="thumb-caption">Donuts Closeup (2.07 MB)</div>
@@ -119,12 +150,39 @@
         <img class="thumb-image" src="thumbs/cdont1.webp" alt="nobg " />
         <div class="thumb-caption">BG Removed (111 KB)</div>
       </a>
+      <!-- === NEW BLENDER THUMBNAILS START HERE === -->
+      <a class="thumb-card" href="images/pshadesmooth.png" target="_blank" rel="noopener">
+        <img class="thumb-image" src="thumbs/pssmooth.webp" alt="Pillow Shade Smooth" />
+        <div class="thumb-caption">Pillow – Shade Smooth</div>
+      </a>
+      <a class="thumb-card" href="images/pillowireframe.png" target="_blank" rel="noopener">
+        <img class="thumb-image" src="thumbs/pwire.webp" alt="Pillow Wireframe" />
+        <div class="thumb-caption">Pillow – Wireframe</div>
+      </a>
+      <a class="thumb-card" href="images/pshadeflat.png" target="_blank" rel="noopener">
+        <img class="thumb-image" src="thumbs/psflat.webp" alt="Pillow Shade Flat" />
+        <div class="thumb-caption">Pillow – Shade Flat</div>
+      </a>
+      <!-- === YOUTUBE VIDEO THUMBNAIL CARD === -->
+      <button class="thumb-card" id="yt-thumb" style="padding:0;border:none;background:none;" title="Watch video: Blender Donut Evolution">
+        <img class="thumb-image" src="https://img.youtube.com/vi/PGOEjSk8Ifo/hqdefault.jpg" alt="Blender Donut Evolution Video" />
+        <div class="thumb-caption" style="color:var(--accent-cyan);font-weight:600;">▶ Blender Donut Evolution (Video)</div>
+      </button>
     </div>
     <button class="accent-btn" id="toggleAccent" type="button">Accent</button>
   </div>
   <footer>
     <div class="sig">© <b><span id="year"></span></b> • e2 digital portfolio</div>
   </footer>
+  <!-- === MODAL STRUCTURE FOR YOUTUBE VIDEO === -->
+  <div class="modal-bg" id="yt-modal" tabindex="-1" aria-modal="true" role="dialog">
+    <div class="modal-box">
+      <button class="modal-close" id="modal-close" aria-label="Close video">&times;</button>
+      <iframe id="yt-iframe" class="modal-iframe"
+        src="" allow="autoplay; encrypted-media" allowfullscreen
+        title="Blender Donut Evolution – YouTube"></iframe>
+    </div>
+  </div>
   <script>
     // Accent color cycling (matches main site)
     const accents = [
@@ -145,6 +203,30 @@
     });
     document.getElementById('year').textContent = new Date().getFullYear();
     setAccent(accentIndex);
+
+    // === YOUTUBE MODAL FUNCTIONALITY ===
+    const ytThumb = document.getElementById('yt-thumb');
+    const ytModal = document.getElementById('yt-modal');
+    const ytIframe = document.getElementById('yt-iframe');
+    const ytClose = document.getElementById('modal-close');
+    const ytID = 'PGOEjSk8Ifo';
+
+    function openModal() {
+      ytModal.classList.add('active');
+      ytIframe.src = 'https://www.youtube.com/embed/' + ytID + '?autoplay=1&rel=0';
+    }
+    function closeModal() {
+      ytModal.classList.remove('active');
+      ytIframe.src = '';
+    }
+    ytThumb.addEventListener('click', openModal);
+    ytClose.addEventListener('click', closeModal);
+    ytModal.addEventListener('click', function(e) {
+      if (e.target === ytModal) closeModal();
+    });
+    document.addEventListener('keydown', function(e) {
+      if (ytModal.classList.contains('active') && (e.key === "Escape" || e.key === "Esc")) closeModal();
+    });
   </script>
 </body>
 </html>
