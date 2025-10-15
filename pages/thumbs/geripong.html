@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Neon Circle Pong</title>
+  <title>Slow Solo Pong</title>
   <style>
     html, body {
       margin: 0;
@@ -38,7 +38,7 @@
 </head>
 <body>
   <div id="header">
-    <h1>E2 Pong</h1>
+    <h1>Slow Solo Pong</h1>
     <p id="hitCount">Hits: 0</p>
   </div>
   <canvas id="gameCanvas"></canvas>
@@ -60,7 +60,7 @@
 
     // Global background color for the trailing effect.
     let bgColor = { r: 17, g: 17, b: 17 };
-    const trailAlpha = 0.15; 
+    const trailAlpha = 0.25; 
 
     // Get a new random dark color.
     function getRandomDarkColor() {
@@ -74,7 +74,7 @@
     const ball = {
       x: center.x,
       y: center.y,
-      radius: 15, // Slightly bigger ball
+      radius: 18, // Slightly bigger ball
       vx: 0,
       vy: 0
     };
@@ -89,7 +89,7 @@
     }
 
     // Base speed for the ball.
-    let baseSpeed = 2;
+    let baseSpeed = 1;
 
     // Reset game: ball starts at center, with a random direction.
     function resetGame() {
