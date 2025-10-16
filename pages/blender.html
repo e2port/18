@@ -189,6 +189,7 @@
     <div class="sig">© <b><span id="year"></span></b> • e2 digital portfolio</div>
   </footer>
   <!-- === MODAL STRUCTURE FOR YOUTUBE VIDEO === -->
+ 
   <div class="modal-bg" id="yt-modal" tabindex="-1" aria-modal="true" role="dialog">
     <div class="modal-box">
       <button class="modal-close" id="modal-close" aria-label="Close video">&times;</button>
@@ -218,29 +219,30 @@
     document.getElementById('year').textContent = new Date().getFullYear();
     setAccent(accentIndex);
 
-    // === YOUTUBE MODAL FUNCTIONALITY ===
-    const ytThumb = document.getElementById('yt-thumb');
-    const ytModal = document.getElementById('yt-modal');
-    const ytIframe = document.getElementById('yt-iframe');
-    const ytClose = document.getElementById('modal-close');
-    const ytID = 'PGOEjSk8Ifo';
+// === YOUTUBE MODAL FUNCTIONALITY - MULTIPLE BUTTONS ===
+const ytModal = document.getElementById('yt-modal');
+const ytIframe = document.getElementById('yt-iframe');
+const ytClose = document.getElementById('modal-close');
 
-    function openModal() {
-      ytModal.classList.add('active');
-      ytIframe.src = 'https://www.youtube.com/embed/' + ytID + '?autoplay=1&rel=0';
-    }
-    function closeModal() {
-      ytModal.classList.remove('active');
-      ytIframe.src = '';
-    }
-    ytThumb.addEventListener('click', openModal);
-    ytClose.addEventListener('click', closeModal);
-    ytModal.addEventListener('click', function(e) {
-      if (e.target === ytModal) closeModal();
-    });
-    document.addEventListener('keydown', function(e) {
-      if (ytModal.classList.contains('active') && (e.key === "Escape" || e.key === "Esc")) closeModal();
-    });
+document.querySelectorAll('button.thumb-card[data-ytid]').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const ytID = this.getAttribute('data-ytid');
+    ytModal.classList.add('active');
+    ytIframe.src = 'https://www.youtube.com/embed/' + ytID + '?autoplay=1&rel=0';
+  });
+});
+
+function closeModal() {
+  ytModal.classList.remove('active');
+  ytIframe.src = '';
+}
+ytClose.addEventListener('click', closeModal);
+ytModal.addEventListener('click', function(e) {
+  if (e.target === ytModal) closeModal();
+});
+document.addEventListener('keydown', function(e) {
+  if (ytModal.classList.contains('active') && (e.key === "Escape" || e.key === "Esc")) closeModal();
+});
   </script>
 </body>
 </html>
