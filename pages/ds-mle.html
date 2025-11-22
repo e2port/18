@@ -89,7 +89,40 @@
       color: var(--ink-2); font-size: 13px; text-align: center; padding: 24px 0 18px 0;
     }
     .sig b { color: var(--ink-1); }
+ /* ----------- Modal for YouTube ----------- */
+    .modal-bg {
+      display: none; position: fixed; z-index: 99; left: 0; top: 0; width: 100vw; height: 100vh;
+      background: rgba(16,18,26,0.80); backdrop-filter: blur(2px);
+      align-items: center; justify-content: center;
+      transition: background .2s;
+    }
+    .modal-bg.active { display: flex; }
+    .modal-box {
+      background: var(--bg-2);
+      border-radius: var(--radius-xl);
+      box-shadow: 0 16px 64px rgba(0,0,0,0.8), var(--shadow-soft);
+      padding: 0; max-width: 640px; width: 94vw;
+      max-height: 80vh; display: flex; flex-direction: column; align-items: center;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute; top: 8px; right: 14px; font-size: 28px; color: var(--ink-2);
+      background: none; border: none; cursor: pointer; z-index: 1;
+      filter: drop-shadow(0 0 3px #222);
+      transition: color 0.15s;
+    }
+    .modal-close:hover { color: var(--accent-active); }
+    .modal-iframe {
+      width: 100%; aspect-ratio: 16 / 9; border: none; border-radius: var(--radius-lg);
+      background: #000;
+      max-height: 65vh;
+      margin-top: 24px;
+    }
+    @media (max-width: 700px) {
+      .modal-box { max-width: 98vw; }
+    }
   </style>
+
 </head>
 <body>
   <div class="main">
@@ -103,6 +136,14 @@
     </div>
     <div class="gallery-grid">
       <!-- Example thumbnail cards. Replace with your own images/links/captions! -->
+<button class="thumb-card" data-ytid="N9gR5YPL0CI" title="Data Science Video Intro">
+  <img class="thumb-image" src="https://img.youtube.com/vi/N9gR5YPL0CI/hqdefault.jpg" alt="DSp1" />
+  <div class="thumb-caption" style="color:var(--accent-cyan);font-weight:600;">▶ Data Science Video Intro</div>
+</button>
+
+
+
+      
       <a class="thumb-card" href="DSReport-v2.pdf" target="_blank" rel="noopener">
         <img class="thumb-image" src="thumbs/dsreport2thumb.PNG" alt="dsreport2" />
         <div class="thumb-caption">Tasty Bytes v2 - Revamped Report  (1.99 MB)</div>
@@ -127,8 +168,18 @@
     <button class="accent-btn" id="toggleAccent" type="button">Accent</button>
   </div>
   <footer>
-    <div class="sig">© <b><span id="year"></span></b> • e2 digital portfolio</div>
+        <div class="sig">© <b><span id="year"></span></b> • e2 digital portfolio</div>
   </footer>
+  <!-- === MODAL STRUCTURE FOR YOUTUBE VIDEO === -->
+ 
+  <div class="modal-bg" id="yt-modal" tabindex="-1" aria-modal="true" role="dialog">
+    <div class="modal-box">
+      <button class="modal-close" id="modal-close" aria-label="Close video">&times;</button>
+      <iframe id="yt-iframe" class="modal-iframe"
+        src="" allow="autoplay; encrypted-media" allowfullscreen
+        title="Blender Videos"></iframe>
+    </div>
+  </div>
   <script>
     // Accent color cycling (matches main site)
     const accents = [
@@ -149,6 +200,31 @@
     });
     document.getElementById('year').textContent = new Date().getFullYear();
     setAccent(accentIndex);
+
+// === YOUTUBE MODAL FUNCTIONALITY - MULTIPLE BUTTONS ===
+const ytModal = document.getElementById('yt-modal');
+const ytIframe = document.getElementById('yt-iframe');
+const ytClose = document.getElementById('modal-close');
+
+document.querySelectorAll('button.thumb-card[data-ytid]').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const ytID = this.getAttribute('data-ytid');
+    ytModal.classList.add('active');
+    ytIframe.src = 'https://www.youtube.com/embed/' + ytID + '?autoplay=1&rel=0';
+  });
+});
+
+function closeModal() {
+  ytModal.classList.remove('active');
+  ytIframe.src = '';
+}
+ytClose.addEventListener('click', closeModal);
+ytModal.addEventListener('click', function(e) {
+  if (e.target === ytModal) closeModal();
+});
+document.addEventListener('keydown', function(e) {
+  if (ytModal.classList.contains('active') && (e.key === "Escape" || e.key === "Esc")) closeModal();
+});
   </script>
 </body>
 </html>
