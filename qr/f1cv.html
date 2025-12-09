@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Redirecting…</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="refresh" content="2;url=https://e2port.github.io/18">
+</head>
+<body>
+  <p>Redirecting to CV…</p>
+  <script>
+    (function () {
+      var logUrl = "https://script.google.com/macros/s/AKfycbwJWfHYQBsa0db82u-h-GtL_KjzPajGsjzpGlaPTJuQ74pwmdOabtoTj-jgYWje7jvT6A/exec" +
+                   "?flyer=f1&dest=cv";
+
+      try {
+        fetch(logUrl, { mode: "no-cors", method: "GET" });
+      } catch (e) {}
+
+      var target = "https://e2port.github.io/18";
+      window.location.href = target;
+    })();
+  </script>
+</body>
+</html>
