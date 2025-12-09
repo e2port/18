@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Redirecting…</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Fallback meta refresh just in case JS is disabled -->
+  <meta http-equiv="refresh" content="2;url=https://wa.me/972546138361">
+</head>
+<body>
+  <p>Redirecting to WhatsApp…</p>
+  <script>
+    (function () {
+      // 1) Fire-and-forget logging call to Apps Script
+      var logUrl = "https://script.google.com/macros/s/AKfycbwJWfHYQBsa0db82u-h-GtL_KjzPajGsjzpGlaPTJuQ74pwmdOabtoTj-jgYWje7jvT6A/exec" +
+                   "?flyer=f2&dest=wa";
+
+      try {
+        // no-cors so we do not care about response; just trigger the request
+        fetch(logUrl, { mode: "no-cors", method: "GET" });
+      } catch (e) {
+        // ignore logging errors
+      }
+
+      // 2) Redirect to final WA target
+      var target = "https://wa.me/972546138361";
+      window.location.href = target;
+    })();
+  </script>
+</body>
+</html>
