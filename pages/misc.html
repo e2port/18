@@ -168,6 +168,31 @@
     });
     document.getElementById('year').textContent = new Date().getFullYear();
     setAccent(accentIndex);
+
+    // === YOUTUBE MODAL FUNCTIONALITY - MULTIPLE BUTTONS ===
+const ytModal = document.getElementById('yt-modal');
+const ytIframe = document.getElementById('yt-iframe');
+const ytClose = document.getElementById('modal-close');
+
+document.querySelectorAll('button.thumb-card[data-ytid]').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const ytID = this.getAttribute('data-ytid');
+    ytModal.classList.add('active');
+    ytIframe.src = 'https://www.youtube.com/embed/' + ytID + '?autoplay=1&rel=0';
+  });
+});
+
+function closeModal() {
+  ytModal.classList.remove('active');
+  ytIframe.src = '';
+}
+ytClose.addEventListener('click', closeModal);
+ytModal.addEventListener('click', function(e) {
+  if (e.target === ytModal) closeModal();
+});
+document.addEventListener('keydown', function(e) {
+  if (ytModal.classList.contains('active') && (e.key === "Escape" || e.key === "Esc")) closeModal();
+});
   </script>
 </body>
 </html>
