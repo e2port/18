@@ -138,6 +138,16 @@
   <footer>
     <div class="sig">© <b><span id="year"></span></b> • e2 digital portfolio</div>
   </footer>
+    <!-- === MODAL STRUCTURE FOR YOUTUBE VIDEO === -->
+ 
+  <div class="modal-bg" id="yt-modal" tabindex="-1" aria-modal="true" role="dialog">
+    <div class="modal-box">
+      <button class="modal-close" id="modal-close" aria-label="Close video">&times;</button>
+      <iframe id="yt-iframe" class="modal-iframe"
+        src="" allow="autoplay; encrypted-media" allowfullscreen
+        title="Blender Videos"></iframe>
+    </div>
+  </div>
   <script>
     // Accent color cycling (matches main site)
     const accents = [
