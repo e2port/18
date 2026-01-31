@@ -89,6 +89,38 @@
       color: var(--ink-2); font-size: 13px; text-align: center; padding: 24px 0 18px 0;
     }
     .sig b { color: var(--ink-1); }
+     /* ----------- Modal for YouTube ----------- */
+    .modal-bg {
+      display: none; position: fixed; z-index: 99; left: 0; top: 0; width: 100vw; height: 100vh;
+      background: rgba(16,18,26,0.80); backdrop-filter: blur(2px);
+      align-items: center; justify-content: center;
+      transition: background .2s;
+    }
+    .modal-bg.active { display: flex; }
+    .modal-box {
+      background: var(--bg-2);
+      border-radius: var(--radius-xl);
+      box-shadow: 0 16px 64px rgba(0,0,0,0.8), var(--shadow-soft);
+      padding: 0; max-width: 640px; width: 94vw;
+      max-height: 80vh; display: flex; flex-direction: column; align-items: center;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute; top: 8px; right: 14px; font-size: 28px; color: var(--ink-2);
+      background: none; border: none; cursor: pointer; z-index: 1;
+      filter: drop-shadow(0 0 3px #222);
+      transition: color 0.15s;
+    }
+    .modal-close:hover { color: var(--accent-active); }
+    .modal-iframe {
+      width: 100%; aspect-ratio: 16 / 9; border: none; border-radius: var(--radius-lg);
+      background: #000;
+      max-height: 65vh;
+      margin-top: 24px;
+    }
+    @media (max-width: 700px) {
+      .modal-box { max-width: 98vw; }
+    }
   </style>
 </head>
 <body>
