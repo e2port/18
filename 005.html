@@ -13,31 +13,26 @@
     - Services list → #services
     - Credential text & images → #work
     - Contact message & email → #contact
-
   • Structure: hash-based routes (#home/#about/#services/#work/#contact) keep this a single file.
   -->
-
   <style>
     /* =========================
        THEME VARIABLES
        ========================= */
     :root {
-      --bg-0: #1e1e2e;       /* page background */
+      --bg-0: #373757;       /* page background */
       --bg-1: #151517;       /* panel background */
       --bg-2: #1b1c1f;       /* card background */
       --ink-1: #d9d9dc;      /* primary text */
       --ink-2: #a6a7aa;      /* secondary text */
       --grid-1: rgba(255,255,255,0.04); /* light grid lines */
       --grid-2: rgba(255,255,255,0.03); /* fine grid lines */
-
       /* 🎨 Accent palette (THREE options) */
       --accent-magenta: #ff2bd6;
       --accent-silver:  #e6e7eb;  /* silverish white */
       --accent-cyan:    #30e0ff;
-
       /* Active accent (JS cycles this variable) */
       --accent-active: var(--accent-cyan);
-
       --radius-xl: 18px;
       --radius-lg: 14px;
       --radius-md: 10px;
@@ -45,14 +40,12 @@
       --shadow-soft: 0 6px 22px rgba(0,0,0,0.35);
       --shadow-edge: 0 0 0 1px rgba(255,255,255,0.05) inset;
       --outline: 1px dashed rgba(255,255,255,0.1); /* blueprint stroke */
-
       /* 💡 Stronger multi-layer neon glow */
       --glow: 0 0 6px var(--accent-active),
               0 0 24px var(--accent-active),
               0 0 48px var(--accent-active),
               0 0 84px color-mix(in srgb, var(--accent-active) 70%, transparent);
     }
-
     /* =========================
        GLOBAL RESET / BASE
        ========================= */
@@ -76,7 +69,6 @@
     }
     a { color: inherit; text-decoration: none; }
     img { max-width: 100%; display: block; }
-
     /* =========================
        LAYOUT
        ========================= */
@@ -85,20 +77,17 @@
       display: grid;
       grid-template-rows: auto 1fr auto;
     }
-
     header {
       position: sticky; top: 0; z-index: 50;
       backdrop-filter: blur(8px);
       background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.0));
       border-bottom: var(--outline);
     }
-
     .topbar {
       max-width: 1100px; margin: 0 auto; padding: 14px 20px;
       display: grid; grid-template-columns: 200px 1fr 240px; gap: 16px; align-items: center;
       overflow: visible; /* allow enlarged logo to overflow cleanly */
     }
-
     .brand {
       display: flex; align-items: center; gap: 10px;
       padding: 8px 12px; border: var(--outline); border-radius: var(--radius-md);
@@ -106,7 +95,6 @@
       box-shadow: var(--shadow-edge);
       position: relative;
     }
-
     /* 🔰 Logo: /18/img/e2v3.webp with accent glow + pulsing + 3x hover zoom */
     .brand .logo {
       width: 32px; height: 32px; border-radius: 8px;
@@ -172,7 +160,6 @@
     .ghost { background: transparent; }
 
     main { max-width: 1100px; margin: 28px auto 40px; padding: 0 20px; }
-
     /* Panel / card styling */
     .panel {
       border: var(--outline);
@@ -210,12 +197,10 @@
     .card:hover { transform: translateY(-2px); box-shadow: var(--shadow-soft), var(--shadow-edge); border-color: rgba(255,255,255,0.2); }
     .card h3 { margin: 0 0 6px; font-size: 16px; letter-spacing: .4px; }
     .card p { margin: 0; color: var(--ink-2); }
-
     /* Make project cards clickable blocks */
     .link-card { display: block; }
     .link-card h3 { display: flex; align-items: center; gap: 8px; }
     .link-card h3::after { content: "↗"; font-size: 13px; color: var(--accent-active); opacity: .8; }
-
     /* Simple thumbnail row for credentials */
     .thumb-row { display: flex; gap: 10px; margin-top: 10px; align-items: center; flex-wrap: wrap; }
     .thumb {
@@ -224,10 +209,8 @@
       box-shadow: var(--shadow-edge);
       background: #111;
     }
-
     /* Section visibility for SPA-like behaviour */
     section[hidden] { display: none !important; }
-
     /* =========================
        LASER BAR (above footer)
        ========================= */
@@ -268,7 +251,6 @@
       from { background-position: 0% 0; }
       to   { background-position: 400% 0; }
     }
-
     /* =========================
        MODAL (credentials zoom)
        ========================= */
@@ -314,7 +296,6 @@
     @media (max-width: 720px) {
       .modal-images { grid-template-columns: 1fr; }
     }
-
     /* Footer */
     footer {
       border-top: var(--outline);
@@ -323,7 +304,6 @@
     .ftr-wrap { max-width: 1100px; margin: 0 auto; padding: 18px 20px; color: var(--ink-2); font-size: 13px; display: flex; gap: 12px; align-items: center; justify-content: space-between; }
     .sig { color: var(--ink-2); }
     .sig b { color: var(--ink-1); }
-
     /* Responsive */
     @media (max-width: 960px) {
       .topbar { grid-template-columns: 1fr; gap: 10px; }
@@ -335,7 +315,6 @@
     @media (max-width: 620px) {
       .grid, .grid.projects { grid-template-columns: 1fr; }
     }
-
     /* Subtle accent underline (thicker/brighter) */
     .underline { position: relative; display: inline-block; }
     .underline::after {
@@ -344,7 +323,6 @@
       filter: drop-shadow(0 0 8px var(--accent-active));
       opacity: .75;
     }
-
     /* Tiny utility dot */
     .accent-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-active); box-shadow: var(--glow); display: inline-block; vertical-align: middle; margin-right: 8px; }
   </style>
@@ -362,23 +340,21 @@
         </a>
         <nav aria-label="Primary">
           <a class="nav-btn" data-link href="#home" data-active="true">Home</a>
-          <a class="nav-btn" data-link href="#about">Projects</a>
+          <a class="nav-btn" data-link href="#projects">Projects</a>
+          <a class="nav-btn" data-link href="#about">About</a>
           <a class="nav-btn" data-link href="#services">Services</a>
-          <a class="nav-btn" data-link href="#work">Credentials</a>
-          <a class="nav-btn" data-link href="#contact">Contact</a>
         </nav>
         <div class="quick-cta">
           <button class="cta ghost" id="toggleAccent" title="Toggle accent color">Accent</button>
-          <a class="cta" href="#contact" data-link aria-label="Contact">בס"ד</a>
+          <a class="cta" href="#Hashem" data-link aria-label="Hashem">בס"ד</a>
         </div>
       </div>
     </header>
-
     <!-- ======================
          MAIN CONTENT
          ====================== -->
     <main>
-      <!-- HOME -->
+<!-- HOME -->
       <section id="home" class="panel">
         <div class="hero">
           <div>
@@ -414,13 +390,10 @@
         </div>
       </section>
 <!-- PROJECTS -->
-
-
       <!-- PROJECTS -->
-      <section id="about" class="panel" hidden>
+      <section id="projects" class="panel" hidden>
   <h2 class="underline">Projects</h2>
-  <p class="muted">Explore six categories of my work. Each project opens in a new tab with more details or interactive demos.</p>
-
+  <p class="muted">Explore some of my work. Each project page opens in a new tab.</p>
   <div class="grid projects">
     <a class="card link-card" href="/18/pages/ds-mle.html" target="_blank" rel="noopener">
       <h3>DS / MLE</h3>
@@ -435,7 +408,21 @@
       <img class="thumb" src="/18/img/02blender.webp" alt="blenders ico" />
       <p>3d Modeling, Animating, Shading, Physics Simulations, Python compatible, etc.</p>
     </a>
+   </div>
+        
+ <p class="muted">The following are more personal projects up for sharing.</p>
+        
+  <div class="grid projects"> 
+    <a class="card link-card" href="/18/pages/misc.html" target="_blank" rel="noopener">
+      <h3>Personal</h3>
+      <p>Other personal side projects</p>
+      <img class="thumb" src="/18/img/06misc.webp" alt="misc ico" />
+    </a>
+  </div>
 
+ <p class="muted">These last three were fun and small side-projects.</p>
+        
+   <div class="grid projects">       
     <a class="card link-card" href="/18/pages/clocks.html" target="_blank" rel="noopener">
       <h3>JS Clocks</h3>
       <p>JavaScript analog clocks</p>
@@ -453,20 +440,65 @@
       <p>Mini-projects to learn game mechanics</p>
       <img class="thumb" src="/18/img/05minigames.webp" alt="mini games ico" />
     </a>
+   </div>
+     
 
-    <a class="card link-card" href="/18/pages/misc.html" target="_blank" rel="noopener">
-      <h3>Misc.</h3>
-      <p>Other personal, side, and fun projects</p>
-      <img class="thumb" src="/18/img/06misc.webp" alt="misc ico" />
-    </a>
-  </div>
 </section>
 
-      <!-- SERVICES (expanded) -->
-      <!-- SERVICES (fixed layout) -->
+<!-- ABOUT-->
+      <section id="about" class="panel" hidden>
+        <h2 class="underline">Mission Statement</h2>
+        <p class="muted">This portfolio serves as a live CV. It highlights how free and open-source tools let you create powerful digital assets — and where I can help.</p>
+
+        <div class="grid" id="credentialsGrid">
+          <div class="card cred-card" tabindex="0" role="button" aria-label="University Graduate credential">
+            <h3>University Graduate</h3>
+            <p>B.Sc. Degree from a respected State University.</p>
+            <div class="thumb-row">
+              <img class="thumb" src="/18/img/university.webp" alt="University certificate" />
+            </div>
+          </div>
+
+          <div class="card cred-card" tabindex="0" role="button" aria-label="TEFL Certified credential">
+            <h3>TEFL Certified</h3>
+            <p>Trained to assist those whose first language is not English.</p>
+            <div class="thumb-row">
+              <img class="thumb" src="/18/img/tefl.webp" alt="TEFL certificate" />
+            </div>
+          </div>
+
+          <div class="card cred-card" tabindex="0" role="button" aria-label="Open Digital Certifications">
+            <h3>Digital Certifications</h3>
+            <p>Certified Data Scientist & Machine Learning Engineer (Python / SQL).<br/>Certified and well-versed with Microsoft products.</p>
+            <div class="thumb-row">
+              <img class="thumb" src="/18/img/cert1.webp" alt="Digital certification placeholder image 1" />
+              <img class="thumb" src="/18/img/cert2.webp" alt="Digital certification placeholder image 2" />
+            </div>
+          </div>
+        </div>
+
+          <!-- secondary text -->
+  <p class="muted" style="margin-top:16px;">
+      Thanks for visiting. If something here resonates, I’d love to hear from you.
+  </p>
+
+     <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;">
+          <div>
+            <div class="accent-dot" aria-hidden="true"></div>
+            <strong>Email me directly:</strong>
+            <p class="muted" id="emailText" style="margin:6px 0 0 0;">
+              <a id="emailLink" href="mailto:e2port18@gmail.com">e2port18@gmail.com</a>
+            </p>
+          </div>
+          <button class="cta" id="copyEmailBtn" type="button" title="Copy email to clipboard">Copy email</button>
+        </div>
+        
+      </section>
+
+      
+<!-- SERVICES -->
 <section id="services" class="panel" hidden>
   <h2 class="underline">Services</h2>
-
   <!-- intro text -->
   <p class="muted">
     The following three tools / services are mostly free, have been around many years,
@@ -500,7 +532,7 @@
       </div>
     </div>
   </div>
-
+  
   <!-- secondary text -->
   <p class="muted" style="margin-top:16px;">
     Besides the above, feel free to communicate regarding any ideas or questions you may have.
@@ -540,57 +572,15 @@
   </div>
 </section>
 
-
-      <!-- CREDENTIALS (with zoom-on-click via modal) -->
-      <section id="work" class="panel" hidden>
-        <h2 class="underline">Mission Statement</h2>
-        <p class="muted">This portfolio serves as a live CV. It highlights how free and open-source tools let you create powerful digital assets — and where I can help.</p>
-
-        <div class="grid" id="credentialsGrid">
-          <div class="card cred-card" tabindex="0" role="button" aria-label="University Graduate credential">
-            <h3>University Graduate</h3>
-            <p>B.Sc. Degree from a respected State University.</p>
-            <div class="thumb-row">
-              <img class="thumb" src="/18/img/university.webp" alt="University certificate" />
-            </div>
-          </div>
-
-          <div class="card cred-card" tabindex="0" role="button" aria-label="TEFL Certified credential">
-            <h3>TEFL Certified</h3>
-            <p>Trained to assist those whose first language is not English.</p>
-            <div class="thumb-row">
-              <img class="thumb" src="/18/img/tefl.webp" alt="TEFL certificate" />
-            </div>
-          </div>
-
-          <div class="card cred-card" tabindex="0" role="button" aria-label="Open Digital Certifications">
-            <h3>Digital Certifications</h3>
-            <p>Certified Data Scientist & Machine Learning Engineer (Python / SQL).<br/>Certified and well-versed with Microsoft products.</p>
-            <div class="thumb-row">
-              <img class="thumb" src="/18/img/cert1.webp" alt="Digital certification placeholder image 1" />
-              <img class="thumb" src="/18/img/cert2.webp" alt="Digital certification placeholder image 2" />
-            </div>
-          </div>
-        </div>
-       
-      </section>
-
-      <!-- CONTACT (no form; email + message) -->
-      <section id="contact" class="panel" hidden>
-        <h2 class="underline">Contact</h2>
+<!-- HASHEM -->
+      <section id="Hashem" class="panel" hidden>
+        <h2 class="underline">Baruch Hashem</h2>
         <p class="muted" style="margin-bottom:14px;">
-          Thanks for visiting. If something here resonates, I’d love to hear from you.
-        </p>
-        <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;">
-          <div>
-            <div class="accent-dot" aria-hidden="true"></div>
-            <strong>Email me directly:</strong>
-            <p class="muted" id="emailText" style="margin:6px 0 0 0;">
-              <a id="emailLink" href="mailto:e2port18@gmail.com">e2port18@gmail.com</a>
-            </p>
-          </div>
-          <button class="cta" id="copyEmailBtn" type="button" title="Copy email to clipboard">Copy email</button>
-        </div>
+        בס"ד  or BS"D is a Jewish acronym for the Aramaic phrase B'siyata D'shmaya (בסיעתא דשמיא), which translates to "with the help of Heaven"; 
+          God willing, this site will help illuminate some of my capabilities and help with regards to parnassah. 
+          There is a tradition of marking texts with this invocation of God's help dating back centuries and can be found in the writings of early rabbinic authorities like Rabbi Yosef Karo in the 15th century.
+        </p> 
+      
       </section>
     </main>
 
