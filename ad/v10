@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Adri Defense - Upgrade Version 10</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: #05070a;
+    display: flex; justify-content: center; align-items: center;
+    font-family: "Courier New", Courier, monospace;
+    color: #7CFC9E; }
+  #gameContainer {
+    position: relative;
+    width: 1000px; height: 650px;
+    box-shadow: 0 0 40px rgba(50,255,120,0.15); }
+  canvas {
+    background: #000;
+    border: 2px solid #2c6e3f;
+    display: block; }
+  .overlay {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    background: rgba(0, 5, 2, 0.92);
+    text-align: center; letter-spacing: 1px; }
+  .hidden { display: none; }
+  h1 {
+    font-size: 48px; margin: 0 0 6px;
+    color: #7CFC9E;
+    text-shadow: 0 0 12px rgba(124,252,158,0.8); }
+  #startTagline {
+    font-size: 12px; letter-spacing: 4px;
+    color: #4fae6c; margin-bottom: 4px; }
+  #startQuote {
+    margin-top: 16px; max-width: 520px;
+    font-size: 15px; font-style: italic;
+    color: #9be7ae; line-height: 1.5; }
+  #startQuoteAuthor {
+    display: block; margin-top: 6px;
+    font-style: normal; font-size: 12px;
+    color: #4fae6c; letter-spacing: 1px; }
+  .blink { margin-top: 22px; font-size: 18px; animation: blink 1.1s infinite; }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .15; } }
+  #controlsPanel {
+    margin-top: 26px; padding: 18px 28px;
+    border: 1px solid rgba(124,252,158,0.35);
+    background: rgba(10,25,15,0.5);
+    border-radius: 4px; }
+  #controlsTitle {
+    font-size: 12px; letter-spacing: 3px;
+    color: #4fae6c; text-align: center;
+    margin-bottom: 14px; }
+  #controls { font-size: 16px; line-height: 2em; color: #cfe9d8; text-align: left; }
+  #controls div { display: flex; align-items: center; width: 480px; }
+  #controls span.key {
+    display: inline-block; min-width: 54px;
+    margin-right: 18px; padding: 4px 10px;
+    text-align: center; color: #7CFC9E; font-weight: bold;
+    border: 1px solid #4fae6c; border-radius: 4px;
+    background: rgba(124,252,158,0.08);
+    box-shadow: 0 2px 0 rgba(124,252,158,0.25); }
+  #gameOverTitle { color: #ff5c5c; text-shadow: 0 0 12px rgba(255,92,92,.8); }
+  #finalScore { font-size: 22px; margin-top: 10px; }
+  #musicButton, #sfxButton {
+    position: absolute; right: 6px; z-index: 5;
+    padding: 4px 8px; border: 1px solid #4fae6c;
+    background: rgba(0,10,5,.8); color: #7CFC9E;
+    font: 12px "Courier New", monospace; cursor: pointer; }
+  #musicButton { bottom: 6px; }
+  #sfxButton { bottom: 34px; }
+</style>
+</head>
+<body>
+<div id="gameContainer">
+  <canvas id="gameCanvas" width="1000" height="650"></canvas>
+  <button id="musicButton" type="button">MUSIC: ON</button>
+  <button id="sfxButton" type="button">SFX: ON</button>
+
+  <div id="startScreen" class="overlay">
+    <h1>ADRI DEFENSE</h1>
+    <div id="startTagline">PLANETARY DEFENSE PROTOCOL</div>
+    <div id="startQuote"></div>
+    <div class="blink">PRESS ANY KEY TO START</div>
+    <div id="controlsPanel">
+      <div id="controlsTitle">CONTROLS</div>
+      <div id="controls">
+        <div><span class="key">SPACE</span><span>Blaster (infinite ammo)</span></div>
+        <div><span class="key">W</span><span>Missile (homing, needs ammo)</span></div>
+        <div><span class="key">A</span><span>Laser (piercing, needs ammo)</span></div>
+        <div><span class="key">D</span><span>Cluster Bomb (launch / detonate)</span></div>
+        <div><span class="key">&larr; &rarr;</span><span>Move</span></div>
+        <div><span class="key">&uarr;</span><span>Shield (hold, drains energy)</span></div>
+        <div><span class="key">&darr;</span><span>Teleport</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="gameOverScreen" class="overlay hidden">
+    <h1 id="gameOverTitle">GAME OVER</h1>
+    <div id="finalScore">SCORE: 0</div>
+    <div class="blink">PRESS ANY KEY TO RESTART</div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /*
+   * UPGRADE VERSION 10
+   * ------------------
+   * This version focuses on presentation: the top-left HUD panels
+   * are tighter, lives are shown as glowing triangle icons instead
+   * of a bare number, the shield bar is labeled with a live
+   * percentage, and the start screen got a genuine redesign -
+   * larger/clearer control callouts plus a randomly selected quote
+   * pulled from a small bank each time the screen is shown.
+   *
+   * Sound files are expected to sit in the same folder as this
+   * HTML file. playSound() clones each Audio node before playing
+   * it, rather than rewinding a single shared instance. This lets
+   * rapid, overlapping sounds (blaster autofire, multiple enemies
+   * firing at once) layer naturally instead of cutting each other
+   * off mid-playback.
+   */
+
+  // ============================================================
+  // CONSTANTS / CONFIGURATION
+  // The values below control the overall game rules and balance.
+  // ============================================================
+  const CANVAS_W = 1000;
+  const CANVAS_H = 650;
+  const FLOOR_Y = 585;
+  const PLAYER_Y = 610;
+  const STATE = { START: "start", PLAYING: "playing", GAMEOVER: "gameover" };
+
+  // Exactly five weapon powerups are scheduled per wave.
+  // They are released at 1/3, 2/3, and 3/3 of enemy defeats.
+  const POWERUP_TYPES = [
+    "missileAmmo", "laserAmmo", "clusterAmmo",
+    "missileLevel", "laserLevel", "clusterLevel", "blasterUpgrade" ];
+  const POWERUPS_PER_WAVE = 5;
+
+  // ============================================================
+  // ENEMY BLAST FREQUENCY CONFIGURATION
+  // Change these values to tune how dense the enemy fire feels.
+  // Larger numbers = LESS frequent enemy blasts.
+  // Smaller numbers = MORE frequent enemy blasts.
+  // The top row uses its own range because those enemies are tougher.
+  // ============================================================
+  const ENEMY_BLAST_SETTINGS = {
+    normalMin: 1.60,
+    normalMax: 2.70,
+    topRowMin: 1.15,
+    topRowMax: 2.00,
+    waveScaling: true,
+    // Extra pause added on top of every enemy's very first shot timer each
+    // wave, so the formation doesn't open fire the instant it spawns. This
+    // does NOT apply to normal reload time between shots after that.
+    waveStartDelay: 1.0
+  };
+
+  // ============================================================
+  // GRAPHICS PLACEHOLDERS
+  // Replace the null values below with Image objects / image
+  // paths when you add custom artwork.
+  // ============================================================
+  const GRAPHICS = {
+    enemyShip: null,       // PLACEHOLDER: custom enemy ship graphic
+    playerShip: null,      // PLACEHOLDER: custom player ship graphic
+    background: null,      // PLACEHOLDER: custom background image
+    enemyExplosion: null,  // PLACEHOLDER: custom enemy explosion graphic
+    playerExplosion: null  // PLACEHOLDER: custom player explosion graphic
+  };
+
+  // ============================================================
+  // SOUND EFFECTS
+  // Every event hook below now points at a real mp3 sitting next
+  // to this HTML file. If you rename or move a file, only the
+  // string on the right needs to change - no other code depends
+  // on these paths.
+  // ============================================================
+  const SOUND_EFFECTS = {
+    mainBlaster: new Audio("mainblaster.mp3"),         // player fires the blaster
+    missileShot: new Audio("missleshot.mp3"),          // player fires a missile
+    laserShot: new Audio("lasershot.mp3"),              // player fires the laser
+    clusterShot: new Audio("clustershot.mp3"),          // player launches a cluster bomb
+    clusterExplode: new Audio("clusterexplode.mp3"),    // cluster bomb detonates
+    enemyBlaster: new Audio("enemyblaster.mp3"),        // an enemy fires
+    powerupFalling: new Audio("powerupfalling.mp3"),    // a powerup spawns and starts falling
+    gotPowerup: new Audio("gotpowerup.mp3"),            // player collects a powerup
+    shieldOn: new Audio("shieldon.mp3"),                // shield activates (off -> on)
+    shieldImpact: new Audio("shieldimpact.mp3"),        // shield blocks an enemy bomb
+    lifeLost: new Audio("lifelost.mp3"),                // player actually loses a life
+    teleport: new Audio("teleport.mp3"),                // player teleports
+    enemyDestroyed: new Audio("enemydestroyed.mp3"),    // an enemy is destroyed
+    waveEnd: new Audio("waveend.mp3"),                  // a wave is fully cleared
+    gameOver: new Audio("gameover.mp3"),                // game over
+
+    // PLACEHOLDER: enemyHit - no file supplied for a "damaged but not
+    // destroyed" top-row hit yet, so this stays null until you add one.
+    enemyHit: null
+  };
+
+  // PER-EFFECT VOLUME TUNING
+  // Native <audio> volume is capped at 1.0 (the source recording's full
+  // loudness) - there's no way to push a single effect louder than that
+  // without amplifying the audio file itself or routing it through the
+  // Web Audio API's gain stage. So "louder" effects below are set to the
+  // 1.0 ceiling, and everything competing with them is pulled down a bit
+  // so the loud ones stand out by comparison. Adjust any of these freely.
+  SOUND_EFFECTS.enemyBlaster.volume = 0.55;   // was crowding out other sounds, pulled down
+  SOUND_EFFECTS.shieldOn.volume = 0.75;       // lowered slightly
+  SOUND_EFFECTS.lifeLost.volume = 1.0;        // kept at full ceiling - the most important cue
+  SOUND_EFFECTS.powerupFalling.volume = 1.0;  // full ceiling
+  SOUND_EFFECTS.gotPowerup.volume = 1.0;      // full ceiling
+
+  function playSound(name) {
+    // SOUND EFFECT HOOK: cloning lets overlapping sounds (rapid blaster
+    // fire, several enemies shooting at once) play on top of each other
+    // instead of interrupting whichever copy is already playing.
+    if (sfxMuted) return;
+    const sound = SOUND_EFFECTS[name];
+    if (!sound) return;
+    const instance = sound.cloneNode(true);
+    instance.volume = sound.volume;
+    instance.play().catch(() => {}); }
+
+  // ============================================================
+  // BACKGROUND MUSIC
+  // Looping arena theme. The music button (top-right, over the
+  // canvas) mutes/unmutes this track without restarting the game.
+  // ============================================================
+  const BACKGROUND_MUSIC = new Audio("djpuls128-alien.mp3"); // PLACEHOLDER: swap this file to change the theme
+  BACKGROUND_MUSIC.volume = 0.45; // kept lower than sound effects so gunfire still reads clearly
+  let musicMuted = false;
+  let sfxMuted = false; // toggled by the SFX button; playSound() checks this before every effect
+
+  // ============================================================
+  // CANVAS / DOM
+  // ============================================================
+  const canvas = document.getElementById("gameCanvas");
+  const ctx = canvas.getContext("2d");
+  const startScreen = document.getElementById("startScreen");
+  const gameOverScreen = document.getElementById("gameOverScreen");
+  const finalScoreEl = document.getElementById("finalScore");
+  const startQuoteEl = document.getElementById("startQuote");
+  const musicButton = document.getElementById("musicButton");
+  const sfxButton = document.getElementById("sfxButton");
+
+  // ============================================================
+  // START SCREEN QUOTE BANK
+  // A short mix of inspirational, badass, and funny lines. One is
+  // picked at random and rendered into #startQuote every time the
+  // start screen is shown (new game, and after returning from a
+  // game-over screen). Add or edit entries freely - text should
+  // stay short so it fits the overlay cleanly.
+  // ============================================================
+  const QUOTES = [
+    { text: "It always seems impossible until it's done.", author: "Nelson Mandela" },
+    { text: "Whether you think you can, or you think you can't - you're right.", author: "Henry Ford" },
+    { text: "I have not failed. I've just found 10,000 ways that won't work.", author: "Thomas Edison" },
+    { text: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" },
+    { text: "You miss 100% of the shots you don't take.", author: "Wayne Gretzky" },
+    { text: "In the middle of difficulty lies opportunity.", author: "Albert Einstein" },
+    { text: "Fortune favors the bold.", author: "Latin Proverb" },
+    { text: "The best way to predict the future is to create it.", author: "Abraham Lincoln" },
+    { text: "Pain is temporary. Quitting lasts forever.", author: "Lance Armstrong" },
+    { text: "Insert coin. Never give up.", author: "Arcade Wisdom" }
+  ];
+
+  function showRandomQuote() {
+    const q = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+    startQuoteEl.innerHTML = `"${q.text}"<span id="startQuoteAuthor">— ${q.author}</span>`;
+  }
+
+  // ============================================================
+  // HIGH SCORE
+  // The high score is saved in localStorage and shown at top right.
+  // ============================================================
+  const HIGH_SCORE_KEY = "adriDefenseHighScore";
+  const HIGH_WAVE_KEY = "adriDefenseHighestWave";
+  let highScore = Number(localStorage.getItem(HIGH_SCORE_KEY) || 0);
+  let highestWave = Number(localStorage.getItem(HIGH_WAVE_KEY) || 1);
+
+  function saveRecords() {
+    if (score > highScore) {
+      highScore = score;
+      localStorage.setItem(HIGH_SCORE_KEY, String(highScore)); }
+    if (wave > highestWave) {
+      highestWave = wave;
+      localStorage.setItem(HIGH_WAVE_KEY, String(highestWave)); } }
+
+  // ============================================================
+  // GLOBAL GAME STATE
+  // ============================================================
+  let gameState = STATE.START;
+  let score = 0;
+  let wave = 1;
+  let lastTime = 0;
+
+  // Tracks how many enemies have been defeated in the current wave.
+  let waveKills = 0;
+  let powerupDropsDone = 0;
+
+  // Tracks the shield's active state from the previous frame so
+  // Shieldon.mp3 fires once per activation instead of every frame
+  // the shield is held down.
+  let shieldWasActive = false;
+
+  // ============================================================
+  // INPUT / CONTROL LAYER
+  // ============================================================
+  // Continuous controls are tracked in keysHeld so movement, shielding, and
+  // sustained blaster fire can happen simultaneously. Special weapons and
+  // teleport remain press-triggered actions. There is deliberately no input
+  // rule that disables movement merely because Space or ArrowUp is held.
+  // ============================================================
+  const keysHeld = new Set();
+  let fireBlasterHeld = false;
+
+  window.addEventListener("keydown", (e) => {
+    if (gameState === STATE.START) {
+      if (!musicMuted) { BACKGROUND_MUSIC.currentTime = 0; BACKGROUND_MUSIC.play().catch(() => {}); }
+      startGame();
+      return; }
+    if (gameState === STATE.GAMEOVER) {
+      resetGame();
+      return; }
+
+    if (["ArrowLeft", "ArrowRight", "ArrowUp"].includes(e.key)) keysHeld.add(e.key);
+
+    if (!e.repeat) {
+      switch (e.key) {
+        case " ":
+        case "Spacebar":
+          fireBlasterHeld = true;
+          break;
+        case "w": case "W": fireMissile(); break;
+        case "a": case "A": fireLaser(); break;
+        case "d": case "D": handleClusterBombKey(); break;
+        case "ArrowDown": teleportPlayer(); break; } }
+    if (e.key === " ") fireBlasterHeld = true; });
+
+  window.addEventListener("keyup", (e) => {
+    keysHeld.delete(e.key);
+    if (e.key === " ") fireBlasterHeld = false; });
+
+  musicButton.addEventListener("click", (e) => {
+    e.stopPropagation();
+    musicMuted = !musicMuted;
+    musicButton.textContent = musicMuted ? "MUSIC: OFF" : "MUSIC: ON";
+    BACKGROUND_MUSIC.muted = musicMuted;
+    if (!musicMuted) BACKGROUND_MUSIC.play().catch(() => {}); });
+
+  sfxButton.addEventListener("click", (e) => {
+    e.stopPropagation();
+    sfxMuted = !sfxMuted;
+    sfxButton.textContent = sfxMuted ? "SFX: OFF" : "SFX: ON"; });
+
+  // ============================================================
+  // UTILITY FUNCTIONS
+  // Small helpers shared by player, enemies, weapons, and drawing.
+  // ============================================================
+  function rectsIntersect(a, b) {
+    return a.x < b.x + b.width && a.x + a.width > b.x &&
+           a.y < b.y + b.height && a.y + a.height > b.y; }
+  function dist(x1, y1, x2, y2) { return Math.hypot(x2 - x1, y2 - y1); }
+  function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+  function rand(min, max) { return Math.random() * (max - min) + min; }
+
+  // ============================================================
+  // PLAYER MECHANICS
+  // ============================================================
+  // This section owns continuous horizontal movement, shield state, lives,
+  // invulnerability, ammunition, weapon levels, and the player's core timing.
+  // Movement is intentionally independent from shield and firing: holding
+  // ArrowLeft/ArrowRight, ArrowUp, and Space together is fully supported.
+  // The shield consumes energy gradually instead of locking the player's ship.
+  // ============================================================
+  let player;
+
+  function makePlayer() {
+    return {
+      x: CANVAS_W / 2 - 20, y: PLAYER_Y, width: 40, height: 18,
+      speed: 320, lives: 3, invulnTimer: 0,
+      shieldActive: false, shieldEnergy: 100, shieldMax: 100,
+      shieldDrainPerSec: 18,
+      blasterLevel: 1, blasterCooldown: 0, blasterFireRate: 0.22,
+      missileAmmo: 0, missileLevel: 1, missileCooldown: 0,
+      laserAmmo: 0, laserLevel: 1, laserCooldown: 0,
+      clusterAmmo: 0, clusterLevel: 1,
+      teleportCooldown: 0
+    }; }
+
+  // TELEPORT MECHANICS
+  // Teleport has no cooldown. The player's current horizontal half determines
+  // the destination: left half sends the ship flush to the right edge, while
+  // right half sends it flush to the left edge. This makes teleport a fast
+  // repositioning tool rather than a mirrored jump to a random location.
+  function teleportPlayer() {
+    const playerCenter = player.x + player.width / 2;
+    player.x = playerCenter < CANVAS_W / 2 ? CANVAS_W - player.width : 0;
+    playSound("teleport");
+    missiles.forEach(m => { m.confused = true; m.target = null; });
+  }
+
+  // ============================================================
+  // ENEMY MECHANICS / FORMATION
+  // The top row is darker, has 2 HP, and fires more frequently.
+  // Other rows retain 1 HP. Enemy projectiles do not clear waves.
+  // ============================================================
+  let enemies = [];
+  let formationOffsetX = 0;
+  let formationOffsetY = 0;
+  let enemyDirection = 1;
+  let enemySpeed = 40;
+  const ENEMY_DROP_STEP = 18;
+  const ENEMY_W = 30, ENEMY_H = 20;
+  let enemyBombTimer = 0;
+
+  function spawnWave(n) {
+    enemies = [];
+    formationOffsetX = 0;
+    formationOffsetY = 0;
+    enemyDirection = 1;
+    enemySpeed = 40 + n * 6;
+    waveKills = 0;
+    powerupDropsDone = 0;
+    player.shieldEnergy = clamp(player.shieldMax * 0.70, 0, player.shieldMax);
+
+    const rows = Math.min(3 + Math.floor(n / 2), 6);
+    const cols = Math.min(8 + Math.floor(n / 3), 13);
+    const spacingX = 50, spacingY = 40;
+    const startX = (CANVAS_W - (cols - 1) * spacingX) / 2 - ENEMY_W / 2;
+    const startY = 60;
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const isTopRow = r === 0;
+        enemies.push({
+          row: r, col: c,
+          baseX: startX + c * spacingX,
+          baseY: startY + r * spacingY,
+          width: ENEMY_W, height: ENEMY_H,
+          alive: true,
+          tier: rows - r,
+          hp: isTopRow ? n + 1 : 1,
+          maxHp: isTopRow ? n + 1 : 1,
+          isTopRow,
+          shootCooldown: ENEMY_BLAST_SETTINGS.waveStartDelay + (isTopRow
+            ? rand(ENEMY_BLAST_SETTINGS.topRowMin, ENEMY_BLAST_SETTINGS.topRowMax)
+            : rand(ENEMY_BLAST_SETTINGS.normalMin, ENEMY_BLAST_SETTINGS.normalMax)) }); } }
+    // PLACEHOLDER: no wave-start file was supplied, so this stays silent for
+    // now. Add a "waveStart" key to SOUND_EFFECTS and a playSound() call
+    // here if you want a distinct sound when a new wave begins.
+  }
+
+  function updateEnemyFormation(dt) {
+    if (!enemies.some(e => e.alive)) return;
+
+    formationOffsetX += enemySpeed * enemyDirection * dt;
+
+    let minX = Infinity, maxX = -Infinity;
+    for (const e of enemies) {
+      if (!e.alive) continue;
+      const x = e.baseX + formationOffsetX;
+      minX = Math.min(minX, x);
+      maxX = Math.max(maxX, x + e.width); }
+
+    if (maxX >= CANVAS_W - 10 || minX <= 10) {
+      enemyDirection *= -1;
+      formationOffsetY += ENEMY_DROP_STEP; }
+
+    for (const e of enemies) {
+      if (!e.alive) continue;
+      const y = e.baseY + formationOffsetY;
+      if (y + e.height >= FLOOR_Y) {
+        triggerGameOver();
+        return; } }
+
+    // Enemy laser/projectile fire. Top-row enemies shoot faster.
+    for (const e of enemies) {
+      if (!e.alive) continue;
+      e.shootCooldown -= dt;
+      if (e.shootCooldown <= 0) {
+        const p = enemyScreenPos(e);
+        enemyBombs.push({
+          x: p.x + p.width / 2 - 3,
+          y: p.y + p.height,
+          width: 6, height: 12,
+          speed: 160 + wave * 8,
+          isLaser: true });
+        playSound("enemyBlaster");
+        const scale = ENEMY_BLAST_SETTINGS.waveScaling
+          ? Math.sqrt(Math.max(1, wave)) : 1;
+        e.shootCooldown = e.isTopRow
+          ? rand(ENEMY_BLAST_SETTINGS.topRowMin, ENEMY_BLAST_SETTINGS.topRowMax) / scale
+          : rand(ENEMY_BLAST_SETTINGS.normalMin, ENEMY_BLAST_SETTINGS.normalMax) / scale; } } }
+
+  function enemyScreenPos(e) {
+    return {
+      x: e.baseX + formationOffsetX,
+      y: e.baseY + formationOffsetY,
+      width: e.width,
+      height: e.height
+    }; }
+
+  // ============================================================
+  // WEAPON MECHANICS: BLASTER
+  // Infinite-ammo primary weapon. Powerups can increase its level.
+  // ============================================================
+  let blasterBullets = [];
+
+  function fireBlasterTick(dt) {
+    // Shielding no longer prevents movement; it only suppresses firing.
+    if (!fireBlasterHeld) return;
+    player.blasterCooldown -= dt;
+    if (player.blasterCooldown > 0) return;
+    player.blasterCooldown = player.blasterFireRate;
+    playSound("mainBlaster");
+
+    const level = player.blasterLevel;
+    const cx = player.x + player.width / 2;
+    const spread = [
+      [0], [-6, 6], [-10, 0, 10], [-14, -5, 5, 14]
+    ][clamp(level, 1, 4) - 1];
+
+    for (const offset of spread) {
+      blasterBullets.push({
+        x: cx + offset - 2, y: player.y - 6,
+        width: 4, height: 10, speed: 480 }); } }
+
+  // ============================================================
+  // WEAPON MECHANICS: MISSILE
+  // Homing weapon that consumes missile ammunition.
+  // ============================================================
+  let missiles = [];
+
+  function fireMissile() {
+    if (gameState !== STATE.PLAYING ||
+        player.missileAmmo <= 0 || player.missileCooldown > 0) return;
+
+    player.missileCooldown = 0.55;
+    const count = Math.min(3, 1 + Math.floor(player.missileLevel / 3));
+    const available = Math.min(count, player.missileAmmo);
+    player.missileAmmo -= available;
+    playSound("missileShot");
+
+    const spacing = 12;
+    const center = (available - 1) / 2;
+
+    for (let i = 0; i < available; i++) {
+      const offset = (i - center) * spacing;
+      missiles.push({
+        x: player.x + player.width / 2 - 3 + offset,
+        y: player.y - 6,
+        width: 6, height: 14,
+        vx: offset * (0.8 + player.missileLevel * 0.08),
+        vy: -260,
+        speed: 300 + player.missileLevel * 8,
+        turnRate: 1.0 + player.missileLevel * 0.95,
+        confused: false, target: null }); } }
+
+  function updateMissiles(dt) {
+    for (const m of missiles) {
+      if (!m.confused) {
+        if (!m.target || !m.target.alive) {
+          let best = null, bestD = Infinity;
+          for (const e of enemies) {
+            if (!e.alive) continue;
+            const p = enemyScreenPos(e);
+            const d = dist(m.x, m.y, p.x + p.width / 2, p.y + p.height / 2);
+            if (d < bestD) { bestD = d; best = e; } }
+          m.target = best; }
+        if (m.target && m.target.alive) {
+          const p = enemyScreenPos(m.target);
+          const desiredAngle = Math.atan2(
+            (p.y + p.height / 2) - m.y,
+            (p.x + p.width / 2) - m.x );
+          const currentAngle = Math.atan2(m.vy, m.vx || 0.0001);
+          let diff = Math.atan2(Math.sin(desiredAngle - currentAngle),
+                                Math.cos(desiredAngle - currentAngle));
+          const newAngle = currentAngle +
+            clamp(diff, -(m.turnRate * dt), m.turnRate * dt);
+          m.vx = Math.cos(newAngle) * m.speed;
+          m.vy = Math.sin(newAngle) * m.speed; } }
+      m.x += m.vx * dt;
+      m.y += m.vy * dt; }
+    missiles = missiles.filter(m =>
+      m.x > -20 && m.x < CANVAS_W + 20 &&
+      m.y > -20 && m.y < CANVAS_H + 20 ); }
+
+  // ============================================================
+  // WEAPON MECHANICS: LASER
+  // Instant, piercing vertical beam. It damages rather than
+  // automatically bypassing the top-row HP.
+  // ============================================================
+  let laserBeam = null;
+
+  function fireLaser() {
+    if (gameState !== STATE.PLAYING ||
+        player.laserAmmo <= 0 || player.laserCooldown > 0) return;
+
+    player.laserCooldown = 0.9;
+    player.laserAmmo--;
+    playSound("laserShot");
+
+    const beamWidth = 2 + player.laserLevel * 5;
+    const beamX = player.x + player.width / 2 - beamWidth / 2;
+    laserBeam = { x: beamX, width: beamWidth, timer: 0.10 + player.laserLevel * 0.035 };
+
+    for (const e of enemies) {
+      if (!e.alive) continue;
+      const p = enemyScreenPos(e);
+      if (p.x < beamX + beamWidth && p.x + p.width > beamX) {
+        damageEnemy(e); } } }
+
+  // ============================================================
+  // WEAPON MECHANICS: CLUSTER BOMB
+  // Area weapon. It damages enemies in its radius; it does NOT
+  // clear an entire wave through a smart-bomb effect.
+  // ============================================================
+  let clusterBomb = null;
+
+  function playClusterShot() {
+    // Clustershot.mp3 is already at native max volume (1.0) - a plain
+    // <audio> element can't be pushed louder than that. Layering a second
+    // copy a few milliseconds behind the first makes the launch read as a
+    // bigger, punchier sound without needing Web Audio gain amplification.
+    playSound("clusterShot");
+    setTimeout(() => playSound("clusterShot"), 20);
+  }
+
+  function detonateClusterBomb() {
+    // Shared by the manual D-press trigger and the automatic
+    // near-the-top detonation so Clusterexplode.mp3 only ever
+    // fires once per bomb, regardless of what triggered it.
+    if (!clusterBomb || clusterBomb.detonating) return;
+    clusterBomb.detonating = true;
+    playSound("clusterExplode"); }
+
+  function handleClusterBombKey() {
+    if (gameState !== STATE.PLAYING) return;
+
+    if (clusterBomb && !clusterBomb.detonating) {
+      detonateClusterBomb();
+      return; }
+
+    if (clusterBomb || player.clusterAmmo <= 0) return;
+
+    player.clusterAmmo--;
+    playClusterShot();
+    clusterBomb = {
+      x: player.x + player.width / 2, y: player.y - 10,
+      vy: -(210 + player.clusterLevel * 18), detonating: false, radius: 0,
+      maxRadius: 42 + player.clusterLevel * 34,
+      hitEnemies: new Set()
+    }; }
+
+  function updateClusterBomb(dt) {
+    if (!clusterBomb) return;
+
+    if (!clusterBomb.detonating) {
+      clusterBomb.y += clusterBomb.vy * dt;
+      if (clusterBomb.y <= 30) detonateClusterBomb();
+    } else {
+      clusterBomb.radius += 220 * dt;
+      for (const e of enemies) {
+        if (!e.alive || clusterBomb.hitEnemies.has(e)) continue;
+        const p = enemyScreenPos(e);
+        const d = dist(
+          clusterBomb.x, clusterBomb.y,
+          p.x + p.width / 2, p.y + p.height / 2 );
+        if (d <= clusterBomb.radius) {
+          clusterBomb.hitEnemies.add(e);
+          damageEnemy(e); } }
+      if (clusterBomb.radius >= clusterBomb.maxRadius) clusterBomb = null; } }
+
+  // ============================================================
+  // ENEMY PROJECTILES
+  // These are enemy laser shots. They damage the player but never
+  // function as a wave-clearing bomb.
+  // ============================================================
+  let enemyBombs = [];
+
+  function updateEnemyBombs(dt) {
+    for (const b of enemyBombs) b.y += b.speed * dt;
+    enemyBombs = enemyBombs.filter(b => b.y < CANVAS_H + 20); }
+
+  // ============================================================
+  // POWERUP MECHANICS
+  // Five powerups are released during each wave, spaced across
+  // enemy-defeat milestones. There is intentionally NO smart-bomb
+  // / automatic wave clear.
+  // ============================================================
+  let powerUps = [];
+
+  function choosePowerUpType() {
+    return POWERUP_TYPES[Math.floor(Math.random() * POWERUP_TYPES.length)]; }
+
+  function spawnPowerUp(x, y, forcedType = null) {
+    const type = forcedType || choosePowerUpType();
+    powerUps.push({
+      x: x - 18, y, width: 36, height: 36,
+      speed: 90, type });
+    playSound("powerupFalling"); }
+
+  function maybeDropWavePowerUp(x, y) {
+    const total = enemies.length;
+    const defeated = waveKills;
+    const thresholds = [
+      Math.ceil(total / 3),
+      Math.ceil((total * 2) / 3),
+      total ];
+
+    if (powerupDropsDone < POWERUPS_PER_WAVE &&
+        defeated >= thresholds[powerupDropsDone]) {
+      spawnPowerUp(x, y);
+      powerupDropsDone++; } }
+
+  function updatePowerUps(dt) {
+    for (const p of powerUps) p.y += p.speed * dt;
+    powerUps = powerUps.filter(p => p.y < CANVAS_H + 40); }
+
+  function applyPowerUp(type) {
+    switch (type) {
+      case "missileAmmo": player.missileAmmo += 7; break;
+      case "laserAmmo": player.laserAmmo += 7; break;
+      case "clusterAmmo": player.clusterAmmo += 7; break;
+      case "missileLevel": player.missileLevel++; break;
+      case "laserLevel": player.laserLevel++; break;
+      case "clusterLevel": player.clusterLevel++; break;
+      case "blasterUpgrade": player.blasterLevel = clamp(player.blasterLevel + 1, 1, 4); break; }
+    playSound("gotPowerup"); }
+
+  // ============================================================
+  // ENEMY HEALTH / DAMAGE / WAVE COMPLETION
+  // Top-row enemies require two successful hits.
+  // ============================================================
+  function damageEnemy(e) {
+    if (!e.alive) return;
+    e.hp--;
+    playSound("enemyHit");
+
+    if (e.hp <= 0) killEnemy(e); }
+
+  function killEnemy(e) {
+    if (!e.alive) return;
+
+    e.alive = false;
+    score += e.tier * 10;
+    waveKills++;
+
+    const p = enemyScreenPos(e);
+    spawnExplosion(p.x + p.width / 2, p.y + p.height / 2, false);
+    playSound("enemyDestroyed");
+
+    // Powerup position is based on the enemy that crossed the threshold.
+    maybeDropWavePowerUp(p.x + p.width / 2, p.y + p.height / 2);
+
+    if (!enemies.some(en => en.alive)) {
+      playSound("waveEnd");
+      player.shieldEnergy = clamp(player.shieldMax * 0.70, 0, player.shieldMax);
+      wave++;
+      saveRecords();
+      setTimeout(() => {
+        if (gameState === STATE.PLAYING) spawnWave(wave);
+      }, 1200); } }
+
+  // ============================================================
+  // COLLISION MECHANICS
+  // Resolves all projectile/enemy/player/powerup interactions.
+  // ============================================================
+  function checkCollisions() {
+    for (const b of blasterBullets) {
+      for (const e of enemies) {
+        if (!e.alive) continue;
+        if (rectsIntersect(b, enemyScreenPos(e))) {
+          damageEnemy(e);
+          b.hit = true;
+          break; } } }
+    blasterBullets = blasterBullets.filter(b => !b.hit && b.y > -20);
+
+    for (const m of missiles) {
+      for (const e of enemies) {
+        if (!e.alive) continue;
+        if (rectsIntersect(m, enemyScreenPos(e))) {
+          damageEnemy(e);
+          m.hit = true;
+          break; } } }
+    missiles = missiles.filter(m => !m.hit);
+
+    if (player.invulnTimer <= 0) {
+      for (const b of enemyBombs) {
+        if (rectsIntersect(b, player)) {
+          b.hit = true;
+          if (!player.shieldActive) damagePlayer();
+          else playSound("shieldImpact"); } } }
+    enemyBombs = enemyBombs.filter(b => !b.hit);
+
+    for (const p of powerUps) {
+      if (rectsIntersect(p, player)) {
+        p.collected = true;
+        applyPowerUp(p.type); } }
+    powerUps = powerUps.filter(p => !p.collected); }
+
+  // ============================================================
+  // PLAYER DAMAGE / EXPLOSION
+  // ============================================================
+  function damagePlayer() {
+    player.lives--;
+    player.invulnTimer = 1.5;
+    spawnExplosion(player.x + player.width / 2, player.y + player.height / 2, true);
+    playSound("lifeLost");
+
+    if (player.lives <= 0) triggerGameOver(); }
+
+  // ============================================================
+  // EXPLOSION GRAPHICS PLACEHOLDER / FALLBACK EFFECT
+  // If custom graphics are supplied, use them here. Player
+  // explosions are rendered at 1.5x the enemy explosion size.
+  // ============================================================
+  let explosions = [];
+
+  function spawnExplosion(x, y, isPlayer) {
+    explosions.push({
+      x, y,
+      timer: 0.35,
+      maxTimer: 0.35,
+      isPlayer,
+      size: isPlayer ? 30 : 20 }); }
+
+  function updateExplosions(dt) {
+    for (const ex of explosions) ex.timer -= dt;
+    explosions = explosions.filter(ex => ex.timer > 0); }
+
+  // ============================================================
+  // PLAYER UPDATE / SIMULATION
+  // ============================================================
+  // Each frame, horizontal movement is resolved first, followed by shield
+  // drain and weapon timers. These systems are independent, which is why the
+  // player can move, hold the shield, and fire the blaster at the same time.
+  // Special weapons are also permitted while shielding.
+  // ============================================================
+  function updatePlayer(dt) {
+    if (keysHeld.has("ArrowLeft")) player.x -= player.speed * dt;
+    if (keysHeld.has("ArrowRight")) player.x += player.speed * dt;
+    player.x = clamp(player.x, 0, CANVAS_W - player.width);
+
+    player.shieldActive =
+      keysHeld.has("ArrowUp") && player.shieldEnergy > 0;
+
+    // Shieldon.mp3 fires only on the off-to-on transition, not every
+    // frame the shield stays held down.
+    if (player.shieldActive && !shieldWasActive) playSound("shieldOn");
+    shieldWasActive = player.shieldActive;
+
+    if (player.shieldActive) {
+      player.shieldEnergy = clamp(
+        player.shieldEnergy - player.shieldDrainPerSec * dt,
+        0, player.shieldMax ); }
+
+    if (player.invulnTimer > 0) player.invulnTimer -= dt;
+    if (player.missileCooldown > 0) player.missileCooldown -= dt;
+    if (player.laserCooldown > 0) player.laserCooldown -= dt;
+
+    fireBlasterTick(dt);
+    for (const b of blasterBullets) b.y -= b.speed * dt; }
+
+  // ============================================================
+  // DRAWING: BACKGROUND
+  // Replace GRAPHICS.background with your own background image.
+  // ============================================================
+  function drawBackground() {
+    if (GRAPHICS.background) {
+      ctx.drawImage(GRAPHICS.background, 0, 0, CANVAS_W, CANVAS_H);
+      return; }
+
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H); }
+
+  // ============================================================
+  // DRAWING: PLAYER SHIP
+  // Replace GRAPHICS.playerShip to use a custom player image.
+  // ============================================================
+  function drawPlayer() {
+    ctx.save();
+    if (player.invulnTimer > 0 &&
+        Math.floor(player.invulnTimer * 10) % 2 === 0) ctx.globalAlpha = 0.4;
+
+    if (GRAPHICS.playerShip) {
+      ctx.drawImage(GRAPHICS.playerShip, player.x, player.y,
+                    player.width, player.height);
+    } else {
+      ctx.fillStyle = "#7CFC9E";
+      ctx.beginPath();
+      ctx.moveTo(player.x + player.width / 2, player.y);
+      ctx.lineTo(player.x, player.y + player.height);
+      ctx.lineTo(player.x + player.width, player.y + player.height);
+      ctx.closePath();
+      ctx.fill(); }
+
+    if (player.shieldActive) {
+      ctx.strokeStyle = "#4fd8ff";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(player.x + player.width / 2, player.y + player.height / 2,
+              28, 0, Math.PI * 2);
+      ctx.stroke(); }
+    ctx.restore(); }
+
+  // ============================================================
+  // DRAWING: ENEMY SHIPS
+  // Top-row enemies are visibly darker and show their remaining HP.
+  // Replace GRAPHICS.enemyShip to use custom enemy artwork.
+  // ============================================================
+  function drawEnemies() {
+    for (const e of enemies) {
+      if (!e.alive) continue;
+      const p = enemyScreenPos(e);
+
+      if (GRAPHICS.enemyShip) {
+        ctx.drawImage(GRAPHICS.enemyShip, p.x, p.y, p.width, p.height);
+      } else {
+        const lightness = e.isTopRow ? 32 : 55;
+        ctx.fillStyle = `hsl(${120 - e.tier * 15}, 80%, ${lightness}%)`;
+        ctx.fillRect(p.x, p.y, p.width, p.height);
+
+        if (e.isTopRow) {
+          ctx.strokeStyle = "#172b1d";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(p.x + 2, p.y + 2, p.width - 4, p.height - 4);
+          // Elite silhouette: three upward spikes make the reinforced top row
+          // immediately recognizable from the ordinary enemy ranks.
+          ctx.fillStyle = `hsl(${120 - e.tier * 15}, 80%, ${Math.max(22, lightness - 5)}%)`;
+          ctx.beginPath(); ctx.moveTo(p.x + 4, p.y + 2); ctx.lineTo(p.x + 9, p.y - 7); ctx.lineTo(p.x + 14, p.y + 2); ctx.lineTo(p.x + 19, p.y - 7); ctx.lineTo(p.x + 24, p.y + 2); ctx.lineTo(p.x + 29, p.y - 7); ctx.lineTo(p.x + p.width - 2, p.y + 3); ctx.closePath(); ctx.fill();
+          ctx.fillStyle = "#fff";
+          ctx.font = "9px monospace";
+          ctx.textAlign = "center";
+          ctx.fillText("HP " + e.hp, p.x + p.width / 2, p.y + 13); } } } }
+
+  // ============================================================
+  // DRAWING: WEAPON PROJECTILES
+  // ============================================================
+  function drawBlasterBullets() {
+    ctx.fillStyle = "#ffe066";
+    for (const b of blasterBullets)
+      ctx.fillRect(b.x, b.y, b.width, b.height); }
+
+  function drawMissiles() {
+    ctx.fillStyle = "#ff8c42";
+    for (const m of missiles) {
+      ctx.save();
+      ctx.translate(m.x + m.width / 2, m.y + m.height / 2);
+      ctx.rotate(Math.atan2(m.vy, m.vx));
+      ctx.fillRect(-m.width / 2, -m.height / 2, m.width, m.height);
+      ctx.restore(); } }
+
+  function drawLaser() {
+    if (!laserBeam) return;
+    ctx.fillStyle = "rgba(255,60,60,.75)";
+    ctx.fillRect(laserBeam.x, 0, laserBeam.width, player.y);
+    laserBeam.timer -= 1 / 60;
+    if (laserBeam.timer <= 0) laserBeam = null; }
+
+  function drawClusterBomb() {
+    if (!clusterBomb) return;
+    if (!clusterBomb.detonating) {
+      ctx.fillStyle = "#ddd";
+      ctx.beginPath();
+      ctx.arc(clusterBomb.x, clusterBomb.y, 6, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.strokeStyle = "rgba(255,180,60,.85)";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(clusterBomb.x, clusterBomb.y, clusterBomb.radius, 0, Math.PI * 2);
+      ctx.stroke(); } }
+
+  // ============================================================
+  // DRAWING: ENEMY LASERS
+  // ============================================================
+  function drawEnemyBombs() {
+    ctx.fillStyle = "#ff5c5c";
+    for (const b of enemyBombs) {
+      ctx.fillRect(b.x, b.y, b.width, b.height);
+      ctx.fillRect(b.x - 2, b.y + 3, b.width + 4, 2); } }
+
+  // ============================================================
+  // DRAWING: POWERUPS
+  // Missiles = triangle, lasers = tall rectangle, cluster bombs =
+  // circle, blaster = star. Each box has a distinct silhouette.
+  // ============================================================
+  function drawPowerUpShape(p) {
+    const cx = p.x + p.width / 2, cy = p.y + p.height / 2;
+    const levelType = ["missileLevel", "laserLevel", "clusterLevel"].includes(p.type);
+    const label = {
+      missileAmmo: "M+7", laserAmmo: "L+7", clusterAmmo: "C+7",
+      missileLevel: "M↑", laserLevel: "L↑", clusterLevel: "C↑",
+      blasterUpgrade: "B↑"
+    }[p.type];
+
+    ctx.save();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = levelType ? "#ffe066" : "#4fd8ff";
+    ctx.fillStyle = levelType ? "rgba(255,224,102,.12)" : "rgba(79,216,255,.12)";
+
+    if (p.type.startsWith("missile")) {
+      ctx.beginPath();
+      ctx.moveTo(cx, p.y);
+      ctx.lineTo(p.x + p.width, p.y + p.height);
+      ctx.lineTo(p.x, p.y + p.height);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+    } else if (p.type.startsWith("laser")) {
+      ctx.fillRect(p.x + 7, p.y - 4, p.width - 14, p.height + 8);
+      ctx.strokeRect(p.x + 7, p.y - 4, p.width - 14, p.height + 8);
+    } else if (p.type.startsWith("cluster")) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, 17, 0, Math.PI * 2);
+      ctx.fill(); ctx.stroke();
+    } else {
+      ctx.beginPath();
+      for (let i = 0; i < 10; i++) {
+        const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 === 0 ? 19 : 9;
+        const x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); }
+      ctx.closePath(); ctx.fill(); ctx.stroke(); }
+
+    ctx.fillStyle = levelType ? "#ffe066" : "#fff";
+    ctx.font = "bold 8px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(label, cx, cy + 3);
+    ctx.restore(); }
+
+  function drawPowerUps() {
+    for (const p of powerUps) drawPowerUpShape(p); }
+
+  // ============================================================
+  // DRAWING: EXPLOSIONS
+  // Custom graphics go through GRAPHICS.enemyExplosion /
+  // GRAPHICS.playerExplosion. Player explosion size is 1.5x.
+  // ============================================================
+  function drawExplosions() {
+    for (const ex of explosions) {
+      const progress = 1 - ex.timer / ex.maxTimer;
+      const image = ex.isPlayer
+        ? GRAPHICS.playerExplosion
+        : GRAPHICS.enemyExplosion;
+
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, ex.timer / ex.maxTimer);
+
+      if (image) {
+        const size = ex.size * (1 + progress);
+        ctx.drawImage(image, ex.x - size / 2, ex.y - size / 2, size, size);
+      } else {
+        const size = ex.size * (1 + progress);
+        ctx.strokeStyle = ex.isPlayer ? "#7CFC9E" : "#ffe066";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(ex.x, ex.y, size, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(ex.x - size, ex.y);
+        ctx.lineTo(ex.x + size, ex.y);
+        ctx.moveTo(ex.x, ex.y - size);
+        ctx.lineTo(ex.x, ex.y + size);
+        ctx.stroke(); }
+      ctx.restore(); } }
+
+  // ============================================================
+  // DRAWING: HUD
+  // GAME STATUS and WEAPON STATUS panels are stacked top-left.
+  // High score/wave stays a single line top-right. The shield bar
+  // is bottom-center, labeled with a live percentage on both sides.
+  // ============================================================
+  function drawFloorLine() {
+    ctx.strokeStyle = "rgba(255,92,92,.3)";
+    ctx.setLineDash([6, 6]);
+    ctx.beginPath();
+    ctx.moveTo(0, FLOOR_Y);
+    ctx.lineTo(CANVAS_W, FLOOR_Y);
+    ctx.stroke();
+    ctx.setLineDash([]); }
+
+  function drawLivesIcons(rightX, centerY, count) {
+    // Glowing green triangles replace the bare life count. Drawn
+    // right-to-left so they line up flush with the panel's right edge.
+    const iconW = 10, gap = 6;
+    ctx.save();
+    ctx.shadowColor = "#7CFC9E";
+    ctx.shadowBlur = 8;
+    ctx.fillStyle = "#7CFC9E";
+    for (let i = 0; i < count; i++) {
+      const tipX = rightX - i * (iconW + gap);
+      ctx.beginPath();
+      ctx.moveTo(tipX, centerY - 5);
+      ctx.lineTo(tipX - 5, centerY + 5);
+      ctx.lineTo(tipX + 5, centerY + 5);
+      ctx.closePath();
+      ctx.fill(); }
+    ctx.restore(); }
+
+  function drawHUD() {
+    // ============================================================
+    // PROFESSIONAL HUD PANELS
+    // ============================================================
+    // Two compact translucent panels keep live game data and weapon inventory
+    // visually organized. Labels share a fixed left column, values share a
+    // fixed right column, and small headers/borders make the HUD read like a
+    // deliberate game interface instead of loose debug text.
+    const x = 12, statsY = 12, statsW = 195, statsH = 78;
+    const weaponY = 98, weaponW = 235, weaponH = 96;
+    ctx.save(); ctx.textBaseline = "middle"; ctx.textAlign = "left";
+    ctx.fillStyle = "rgba(4,18,11,.80)"; ctx.strokeStyle = "rgba(124,252,158,.55)";
+    ctx.fillRect(x, statsY, statsW, statsH); ctx.strokeRect(x, statsY, statsW, statsH);
+    ctx.fillStyle = "rgba(4,18,11,.72)"; ctx.strokeStyle = "rgba(79,216,255,.50)";
+    ctx.fillRect(x, weaponY, weaponW, weaponH); ctx.strokeRect(x, weaponY, weaponW, weaponH);
+    ctx.fillStyle = "#7CFC9E"; ctx.font = "bold 11px monospace";
+    ctx.fillText("GAME STATUS", x + 10, statsY + 12); ctx.fillText("WEAPON STATUS", x + 10, weaponY + 12);
+    ctx.strokeStyle = "rgba(124,252,158,.22)"; ctx.beginPath(); ctx.moveTo(x + 10, statsY + 22); ctx.lineTo(x + statsW - 10, statsY + 22); ctx.stroke();
+    ctx.strokeStyle = "rgba(79,216,255,.24)"; ctx.beginPath(); ctx.moveTo(x + 10, weaponY + 22); ctx.lineTo(x + weaponW - 10, weaponY + 22); ctx.stroke();
+    ctx.font = "bold 13px monospace"; ctx.fillStyle = "#7CFC9E";
+    ctx.fillText("SCORE", x + 10, statsY + 36);
+    ctx.fillText("WAVE", x + 10, statsY + 52);
+    ctx.fillText("LIVES LEFT", x + 10, statsY + 68);
+    ctx.textAlign = "right";
+    ctx.fillText(String(score), x + statsW - 10, statsY + 36);
+    ctx.fillText(String(wave), x + statsW - 10, statsY + 52);
+    ctx.textAlign = "left";
+    drawLivesIcons(x + statsW - 10, statsY + 68, player.lives);
+    const rows = [["MISSILE", player.missileAmmo, player.missileLevel], ["LASER", player.laserAmmo, player.laserLevel], ["CLUSTER", player.clusterAmmo, player.clusterLevel], ["BLASTER", "∞", player.blasterLevel]];
+    ctx.font = "12px monospace";
+    rows.forEach((r, i) => { const y = weaponY + 40 + i * 15; ctx.fillStyle = "#7CFC9E"; ctx.fillText(r[0], x + 10, y); ctx.textAlign = "right"; ctx.fillText("x" + r[1], x + 150, y); ctx.fillStyle = "#ffe066"; ctx.fillText("LVL " + r[2], x + weaponW - 10, y); ctx.textAlign = "left"; });
+    ctx.textAlign = "right"; ctx.font = "14px monospace"; ctx.fillStyle = "#7CFC9E";
+    ctx.fillText("HIGH WAVE: " + highestWave + "  |  HIGH SCORE: " + highScore, CANVAS_W - 12, 22);
+
+    // SHIELD BAR: labeled on the left, live percentage on the right.
+    const barW = 220, barH = 10, barX = CANVAS_W / 2 - barW / 2, barY = CANVAS_H - 22;
+    const shieldPct = Math.round((player.shieldEnergy / player.shieldMax) * 100);
+    ctx.font = "12px monospace"; ctx.fillStyle = "#4fd8ff";
+    ctx.textAlign = "right"; ctx.fillText("SHIELD", barX - 10, barY + barH / 2);
+    ctx.strokeStyle = "#4fd8ff"; ctx.strokeRect(barX, barY, barW, barH);
+    ctx.fillStyle = "#4fd8ff"; ctx.fillRect(barX, barY, barW * (player.shieldEnergy / player.shieldMax), barH);
+    ctx.textAlign = "left"; ctx.fillText(shieldPct + "%", barX + barW + 10, barY + barH / 2);
+    ctx.restore();
+  }
+  function update(dt) {
+    updatePlayer(dt);
+    updateEnemyFormation(dt);
+    updateMissiles(dt);
+    updateClusterBomb(dt);
+    updateEnemyBombs(dt);
+    updatePowerUps(dt);
+    updateExplosions(dt);
+    checkCollisions();
+    saveRecords(); }
+
+  function draw() {
+    drawBackground();
+    drawFloorLine();
+    drawEnemies();
+    drawEnemyBombs();
+    drawBlasterBullets();
+    drawMissiles();
+    drawLaser();
+    drawClusterBomb();
+    drawPowerUps();
+    drawExplosions();
+    drawPlayer();
+    drawHUD(); }
+
+  function loop(timestamp) {
+    if (gameState !== STATE.PLAYING) return;
+    const dt = Math.min((timestamp - lastTime) / 1000, 0.05);
+    lastTime = timestamp;
+    update(dt);
+    draw();
+    requestAnimationFrame(loop); }
+
+  // ============================================================
+  // GAME STATE TRANSITIONS
+  // Starts, resets, and ends the game without any wave-clearing
+  // smart-bomb behavior.
+  // ============================================================
+  function startGame() {
+    resetGame(false);
+    gameState = STATE.PLAYING;
+    startScreen.classList.add("hidden");
+    gameOverScreen.classList.add("hidden");
+
+    BACKGROUND_MUSIC.muted = musicMuted;
+    BACKGROUND_MUSIC.loop = true;
+    BACKGROUND_MUSIC.currentTime = 0;
+    BACKGROUND_MUSIC.play().catch(() => {});
+
+    lastTime = performance.now();
+    requestAnimationFrame(loop); }
+
+  function resetGame(showStart = true) {
+    score = 0;
+    wave = 1;
+    waveKills = 0;
+    powerupDropsDone = 0;
+    shieldWasActive = false;
+
+    player = makePlayer();
+    blasterBullets = [];
+    missiles = [];
+    enemyBombs = [];
+    powerUps = [];
+    explosions = [];
+    clusterBomb = null;
+    laserBeam = null;
+    keysHeld.clear();
+    fireBlasterHeld = false;
+    spawnWave(wave);
+
+    if (showStart) {
+      gameState = STATE.START;
+      gameOverScreen.classList.add("hidden");
+      showRandomQuote();
+      startScreen.classList.remove("hidden"); } }
+
+  function triggerGameOver() {
+    if (gameState === STATE.GAMEOVER) return;
+    saveRecords();
+    gameState = STATE.GAMEOVER;
+    playSound("gameOver");
+    BACKGROUND_MUSIC.pause();
+    finalScoreEl.textContent =
+      "SCORE: " + score + " | HIGH SCORE: " + highScore;
+    gameOverScreen.classList.remove("hidden"); }
+
+  // ============================================================
+  // INITIAL STATE
+  // ============================================================
+  resetGame(true);
+})();
+</script>
+</body>
+</html>
