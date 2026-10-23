@@ -3,72 +3,91 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Live CV / Resume</title>
-  <meta name="description" content="E2 - Digital Portfolio" />
+  <title>E2 | Digital Portfolio &amp; Live CV</title>
+  <meta name="description" content="E2 Digital Portfolio and Live CV: data science, automation, 3D modeling, consulting, and technology services." />
+  <meta name="theme-color" content="#51414F" />
   <link rel="icon" href="/18/img/e2v3.png" type="image/x-icon" sizes="any" />
-  <!--
-  • Where to edit content:
-    - Hero text → #home
-    - Project names → #about
-    - Services list → #services
-    - Credential text & images → #work
-    - Contact message & email → #contact
-  • Structure: hash-based routes (#home/#about/#services/#work/#contact) keep this a single file.
-  -->
+
+  <!-- Typeface: Plus Jakarta Sans (falls back to the system font if it cannot load) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
   <style>
     /* =========================
        THEME VARIABLES
        ========================= */
     :root {
-      --bg-0: #373757;       /* page background */
-      --bg-1: #151517;       /* panel background */
-      --bg-2: #1b1c1f;       /* card background */
-      --ink-1: #d9d9dc;      /* primary text */
-      --ink-2: #a6a7aa;      /* secondary text */
-      --grid-1: rgba(255,255,255,0.04); /* light grid lines */
-      --grid-2: rgba(255,255,255,0.03); /* fine grid lines */
-      /* 🎨 Accent palette (THREE options) */
+      /* Page gradient: quartz (top) to wisteria (bottom) */
+      --quartz:   #51414F;
+      --wisteria: #BDB5D5;
+
+      --bg-1: #16121e;       /* panel base */
+      --bg-2: #1d1827;       /* card base */
+      --ink-1: #ececf1;      /* primary text */
+      --ink-2: #c3c4cc;      /* secondary text */
+
+      /* Accent palette (three options) */
       --accent-magenta: #ff2bd6;
-      --accent-silver:  #e6e7eb;  /* silverish white */
+      --accent-silver:  #e6e7eb;
       --accent-cyan:    #30e0ff;
       /* Active accent (JS cycles this variable) */
       --accent-active: var(--accent-cyan);
+
       --radius-xl: 18px;
       --radius-lg: 14px;
       --radius-md: 10px;
       --radius-sm: 8px;
-      --shadow-soft: 0 6px 22px rgba(0,0,0,0.35);
+      --shadow-soft: 0 8px 26px rgba(10,6,16,0.38);
       --shadow-edge: 0 0 0 1px rgba(255,255,255,0.05) inset;
-      --outline: 1px dashed rgba(255,255,255,0.1); /* blueprint stroke */
-      /* 💡 Stronger multi-layer neon glow */
+      --outline: 1px solid rgba(255,255,255,0.12);
+
+      --font: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", Arial, "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+
+      /* Multi-layer neon glow */
       --glow: 0 0 6px var(--accent-active),
               0 0 24px var(--accent-active),
               0 0 48px var(--accent-active),
               0 0 84px color-mix(in srgb, var(--accent-active) 70%, transparent);
     }
+
     /* =========================
        GLOBAL RESET / BASE
        ========================= */
     *, *::before, *::after { box-sizing: border-box; }
-    html, body { height: 100%; }
+    html { min-height: 100%; background: var(--quartz); }
     body {
       margin: 0;
+      min-height: 100%;
       color: var(--ink-1);
-      background: var(--bg-0);
-      font: 15.5px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-      letter-spacing: 0.2px;
-      /* Blueprint-style grid background (greyscale) */
-      background-image:
-        linear-gradient(var(--bg-0), var(--bg-0)),
-        repeating-linear-gradient(0deg, var(--grid-2) 0, var(--grid-2) 1px, transparent 1px, transparent 20px),
-        repeating-linear-gradient(90deg, var(--grid-2) 0, var(--grid-2) 1px, transparent 1px, transparent 20px),
-        repeating-linear-gradient(0deg, var(--grid-1) 0, var(--grid-1) 1px, transparent 1px, transparent 100px),
-        repeating-linear-gradient(90deg, var(--grid-1) 0, var(--grid-1) 1px, transparent 1px, transparent 100px);
-      background-blend-mode: normal, screen, screen, screen, screen;
-      background-attachment: fixed;
+      font: 16px/1.65 var(--font);
+      letter-spacing: 0.1px;
+      -webkit-font-smoothing: antialiased;
+    }
+    /* Gradient layer: fixed so it never jumps or tiles on mobile browsers */
+    body::before {
+      content: "";
+      position: fixed; inset: 0; z-index: -2;
+      background: linear-gradient(180deg, var(--quartz) 0%, var(--wisteria) 100%);
+    }
+    /* Bokeh canvas sits above the gradient and below all content */
+    #bokeh {
+      position: fixed; inset: 0; z-index: -1;
+      width: 100%; height: 100%;
+      pointer-events: none;
     }
     a { color: inherit; text-decoration: none; }
     img { max-width: 100%; display: block; }
+    :focus-visible { outline: 2px solid var(--accent-active); outline-offset: 3px; }
+
+    .skip-link {
+      position: absolute; left: 12px; top: -48px; z-index: 100;
+      padding: 8px 14px; border-radius: var(--radius-sm);
+      background: var(--bg-1); color: var(--ink-1); border: var(--outline);
+      transition: top .15s ease;
+    }
+    .skip-link:focus { top: 12px; }
+
     /* =========================
        LAYOUT
        ========================= */
@@ -79,8 +98,9 @@
     }
     header {
       position: sticky; top: 0; z-index: 50;
-      backdrop-filter: blur(8px);
-      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.0));
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      background: rgba(30, 22, 32, 0.58);
       border-bottom: var(--outline);
     }
     .topbar {
@@ -91,11 +111,11 @@
     .brand {
       display: flex; align-items: center; gap: 10px;
       padding: 8px 12px; border: var(--outline); border-radius: var(--radius-md);
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
+      background: rgba(255,255,255,0.04);
       box-shadow: var(--shadow-edge);
       position: relative;
     }
-    /* 🔰 Logo: /18/img/e2v3.webp with accent glow + pulsing + 3x hover zoom */
+    /* Logo with accent glow, slow pulse, and hover zoom */
     .brand .logo {
       width: 32px; height: 32px; border-radius: 8px;
       background: url('/18/img/e2v3.webp') center/contain no-repeat;
@@ -118,7 +138,6 @@
       z-index: -1;
       pointer-events: none;
     }
-    /* 3x hover zoom with stronger glow */
     .brand:hover .logo,
     .brand .logo:hover {
       transform: scale(1.8);
@@ -129,99 +148,132 @@
       50%      { filter: drop-shadow(0 0 26px var(--accent-active)) drop-shadow(0 0 78px var(--accent-active)); }
     }
 
-    .brand h1 { font-size: 15px; margin: 0; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--ink-1); }
-    .brand span { color: var(--ink-2); font-weight: 400; }
+    .brand h1 { font-size: 15px; margin: 0; font-weight: 700; letter-spacing: .6px; color: var(--ink-1); }
+    .brand span { color: var(--ink-2); font-weight: 500; }
 
-    nav { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+    nav { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
     .nav-btn {
       position: relative;
-      padding: 10px 14px; border-radius: var(--radius-sm);
-      border: var(--outline);
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
-      color: var(--ink-1);
-      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-      box-shadow: var(--shadow-edge);
+      padding: 10px 16px; border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--ink-2);
+      font-weight: 500;
+      transition: color .18s ease, background .18s ease, border-color .18s ease;
     }
-    .nav-btn[data-active="true"] { border-color: rgba(255,255,255,0.22); }
-    .nav-btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-soft), var(--shadow-edge), 0 0 0 1px var(--accent-active) inset; }
-    .nav-btn:focus-visible { outline: 2px solid var(--accent-active); }
+    .nav-btn:hover { color: var(--ink-1); background: rgba(255,255,255,0.07); }
+    .nav-btn[data-active="true"] {
+      color: var(--ink-1);
+      background: rgba(255,255,255,0.09);
+      border-color: rgba(255,255,255,0.16);
+      box-shadow: inset 0 -2px 0 var(--accent-active);
+    }
 
     .quick-cta { justify-self: end; display: flex; gap: 10px; align-items: center; }
     .cta {
-      padding: 10px 14px; border-radius: var(--radius-sm);
-      border: 1px solid rgba(255,255,255,0.14);
+      display: inline-block;
+      padding: 10px 16px; border-radius: var(--radius-sm);
+      border: 1px solid rgba(255,255,255,0.16);
       background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
-      color: var(--ink-1); font-weight: 600; letter-spacing: .3px;
+      color: var(--ink-1); font: inherit; font-weight: 600; letter-spacing: .2px;
       box-shadow: var(--shadow-edge);
-      transition: box-shadow .2s ease, transform .2s ease;
+      transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
       cursor: pointer;
     }
     .cta:hover { box-shadow: var(--shadow-soft), var(--shadow-edge), 0 0 0 1px var(--accent-active) inset; transform: translateY(-1px); }
-    .ghost { background: transparent; }
+    .cta.ghost { background: rgba(255,255,255,0.04); }
+    .cta.primary { border-color: var(--accent-active); }
 
-    main { max-width: 1100px; margin: 28px auto 40px; padding: 0 20px; }
-    /* Panel / card styling */
+    main { max-width: 1100px; width: 100%; margin: 32px auto 40px; padding: 0 20px; }
+
+    /* Frosted-glass panels: dark enough for readable text over the light end of the gradient */
     .panel {
       border: var(--outline);
       border-radius: var(--radius-xl);
-      padding: 22px; background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
-      box-shadow: var(--shadow-edge);
+      padding: 28px;
+      background: rgba(20, 16, 28, 0.72);
+      -webkit-backdrop-filter: blur(14px);
+      backdrop-filter: blur(14px);
+      box-shadow: var(--shadow-soft), var(--shadow-edge);
     }
-
-    .hero {
-      display: grid; grid-template-columns: 1.2fr .8fr; gap: 22px; align-items: center;
-    }
-    .hero h2 { font-size: 28px; margin: 0 0 6px; letter-spacing: .6px; }
+    .panel > p, .hero p { max-width: 70ch; }
+    .panel h2 { font-size: clamp(24px, 3vw, 30px); line-height: 1.2; margin: 0 0 12px; font-weight: 700; letter-spacing: -0.2px; }
+    .section-title { font-size: 19px; font-weight: 700; margin: 34px 0 4px; letter-spacing: -0.1px; }
     .muted { color: var(--ink-2); }
+
+    /* Hero */
+    .hero { display: grid; grid-template-columns: 1.2fr .8fr; gap: 28px; align-items: center; }
+    .hero h2 { font-size: clamp(28px, 4vw, 40px); line-height: 1.15; margin: 18px 0 14px; letter-spacing: -0.5px; }
+    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 22px; }
 
     .hero .badge {
       display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2);
-      padding: 8px 12px; border-radius: 999px; border: var(--outline); box-shadow: var(--shadow-edge);
-      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.00));
+      padding: 8px 14px; border-radius: 999px; border: var(--outline); box-shadow: var(--shadow-edge);
+      background: rgba(255,255,255,0.05);
     }
     .badge .pulse {
       width: 8px; height: 8px; border-radius: 50%; background: var(--accent-active); box-shadow: var(--glow);
     }
 
+    /* Grids */
     .grid { margin-top: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-    /* 4-column variant for Projects */
-    .grid.projects { grid-template-columns: repeat(4, 1fr); }
+    .grid.wide { grid-template-columns: repeat(4, 1fr); }
+    .grid.projects { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
 
+    /* Cards */
     .card {
-      border: var(--outline); border-radius: var(--radius-lg); padding: 18px;
-      background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
+      border: var(--outline); border-radius: var(--radius-lg); padding: 20px;
+      background: linear-gradient(180deg, rgba(36,31,48,0.92), rgba(24,20,33,0.94));
       box-shadow: var(--shadow-edge);
-      transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
-      min-height: 160px;
+      min-height: 150px;
     }
-    .card:hover { transform: translateY(-2px); box-shadow: var(--shadow-soft), var(--shadow-edge); border-color: rgba(255,255,255,0.2); }
-    .card h3 { margin: 0 0 6px; font-size: 16px; letter-spacing: .4px; }
-    .card p { margin: 0; color: var(--ink-2); }
-    /* Make project cards clickable blocks */
+    .card h3 { margin: 0 0 8px; font-size: 17px; font-weight: 700; letter-spacing: -0.1px; }
+    .card p { margin: 0; color: var(--ink-2); font-size: 15px; }
+    .card p + p { margin-top: 8px; }
+
+    /* Only interactive cards react to the pointer */
+    .link-card, .cred-card {
+      transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+    .link-card:hover, .cred-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-soft), var(--shadow-edge);
+      border-color: color-mix(in srgb, var(--accent-active) 55%, rgba(255,255,255,0.2));
+    }
     .link-card { display: block; }
     .link-card h3 { display: flex; align-items: center; gap: 8px; }
-    .link-card h3::after { content: "↗"; font-size: 13px; color: var(--accent-active); opacity: .8; }
-    /* Simple thumbnail row for credentials */
-    .thumb-row { display: flex; gap: 10px; margin-top: 10px; align-items: center; flex-wrap: wrap; }
+    .link-card h3::after { content: "↗"; font-size: 13px; color: var(--accent-active); opacity: .85; }
+
+    /* Thumbnails */
+    .thumb-row { display: flex; gap: 10px; margin-top: 12px; align-items: center; flex-wrap: wrap; }
     .thumb {
       width: 100%; max-width: 120px; aspect-ratio: 4 / 3; object-fit: cover;
-      border-radius: 8px; border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 8px; border: 1px solid rgba(255,255,255,0.16);
       box-shadow: var(--shadow-edge);
       background: #111;
+      margin-top: 12px;
     }
-    /* Section visibility for SPA-like behaviour */
+    .thumb-row .thumb { margin-top: 0; }
+
+    /* Experience list (About) */
+    .facts { list-style: none; margin: 16px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+    .facts li {
+      padding: 14px 16px; border: var(--outline); border-radius: var(--radius-md);
+      background: rgba(255,255,255,0.045);
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .facts strong { font-weight: 700; }
+    .facts span { color: var(--ink-2); font-size: 14.5px; }
+
     section[hidden] { display: none !important; }
+
     /* =========================
        LASER BAR (above footer)
        ========================= */
-    .laser-wrap {
-      max-width: 1100px;
-      margin: 42px auto 28px;
-      padding: 0 20px;
-    }
+    .laser-wrap { max-width: 1100px; width: 100%; margin: 42px auto 28px; padding: 0 20px; }
     .laser {
       position: relative;
-      height: 8px;                    /* thicker for visibility */
+      height: 6px;
       border-radius: 999px;
       background: linear-gradient(
         90deg,
@@ -232,11 +284,11 @@
         transparent 100%
       );
       background-size: 400% 100%;
-      filter: drop-shadow(0 0 16px var(--accent-active)) drop-shadow(0 0 40px var(--accent-active));
+      filter: drop-shadow(0 0 14px var(--accent-active)) drop-shadow(0 0 34px var(--accent-active));
       animation: laserScan 6s linear infinite;
       overflow: hidden;
       box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-active) 25%, transparent) inset;
-      z-index: 5; /* ensure it sits above background layers */
+      z-index: 5;
     }
     .laser::after {
       content: "";
@@ -244,15 +296,16 @@
       inset: -16px 0;
       background: radial-gradient(ellipse at center, var(--accent-active) 0%, rgba(0,0,0,0) 70%);
       filter: blur(18px);
-      opacity: .35; /* a bit stronger */
+      opacity: .35;
       pointer-events: none;
     }
     @keyframes laserScan {
       from { background-position: 0% 0; }
       to   { background-position: 400% 0; }
     }
+
     /* =========================
-       MODAL (credentials zoom)
+       MODAL (credentials / services preview)
        ========================= */
     dialog.modal {
       border: none;
@@ -260,35 +313,35 @@
       width: min(92vw, 1000px);
       max-width: 1000px;
       background: transparent;
+      color: var(--ink-1);
     }
     dialog.modal::backdrop {
-      background: rgba(0,0,0,0.6);
-      backdrop-filter: blur(2px);
+      background: rgba(12, 8, 18, 0.65);
+      -webkit-backdrop-filter: blur(3px);
+      backdrop-filter: blur(3px);
     }
     .modal-card {
-      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      background: rgba(28, 23, 38, 0.97);
       border: var(--outline);
       border-radius: 18px;
-      box-shadow: var(--shadow-soft), var(--shadow-edge), 0 0 0 1px rgba(255,255,255,0.15) inset;
-      padding: 18px;
+      box-shadow: var(--shadow-soft), var(--shadow-edge);
+      padding: 20px;
       color: var(--ink-1);
       max-height: 90vh;
       overflow: auto;
     }
     .modal-header {
       display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px;
-      border-bottom: 1px dashed rgba(255,255,255,0.18); padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.14); padding-bottom: 10px;
     }
-    .modal-title { margin: 0; font-size: 18px; letter-spacing: .4px; }
+    .modal-title { margin: 0; font-size: 19px; letter-spacing: -0.1px; }
     .modal-x {
-      background: transparent; color: var(--ink-1); border: 1px solid rgba(255,255,255,0.18);
-      width: 34px; height: 34px; border-radius: 10px; cursor: pointer;
+      background: transparent; color: var(--ink-1); border: 1px solid rgba(255,255,255,0.2);
+      width: 34px; height: 34px; border-radius: 10px; cursor: pointer; font-size: 18px; line-height: 1;
       box-shadow: var(--shadow-edge);
     }
     .modal-x:hover { box-shadow: var(--shadow-soft), var(--shadow-edge); border-color: var(--accent-active); }
-    .modal-images {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px;
-    }
+    .modal-images { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
     .modal-images img {
       width: 100%; height: auto; border-radius: 10px; border: 1px solid rgba(255,255,255,0.18);
       box-shadow: var(--shadow-edge);
@@ -296,38 +349,52 @@
     @media (max-width: 720px) {
       .modal-images { grid-template-columns: 1fr; }
     }
+
     /* Footer */
     footer {
       border-top: var(--outline);
-      background: linear-gradient(0deg, rgba(255,255,255,0.06), rgba(255,255,255,0.0));
+      background: rgba(30, 22, 32, 0.72);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
     }
-    .ftr-wrap { max-width: 1100px; margin: 0 auto; padding: 18px 20px; color: var(--ink-2); font-size: 13px; display: flex; gap: 12px; align-items: center; justify-content: space-between; }
+    .ftr-wrap { max-width: 1100px; margin: 0 auto; padding: 18px 20px; color: var(--ink-2); font-size: 13.5px; display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
     .sig { color: var(--ink-2); }
-    .sig b { color: var(--ink-1); }
+    .sig b { color: var(--ink-1); font-weight: 600; }
+
     /* Responsive */
     @media (max-width: 960px) {
       .topbar { grid-template-columns: 1fr; gap: 10px; }
       .quick-cta { justify-self: start; }
       .hero { grid-template-columns: 1fr; }
-      .grid { grid-template-columns: 1fr 1fr; }
-      .grid.projects { grid-template-columns: 1fr 1fr; }
+      .grid, .grid.wide { grid-template-columns: 1fr 1fr; }
     }
     @media (max-width: 620px) {
-      .grid, .grid.projects { grid-template-columns: 1fr; }
+      .panel { padding: 20px; }
+      .grid, .grid.wide { grid-template-columns: 1fr; }
     }
-    /* Subtle accent underline (thicker/brighter) */
+
+    /* Accent underline for headings */
     .underline { position: relative; display: inline-block; }
     .underline::after {
-      content: ""; position: absolute; left: 0; bottom: -3px; height: 3px; width: 100%;
+      content: ""; position: absolute; left: 0; bottom: -4px; height: 3px; width: 100%;
       background: linear-gradient(90deg, transparent, var(--accent-active), transparent);
       filter: drop-shadow(0 0 8px var(--accent-active));
       opacity: .75;
     }
-    /* Tiny utility dot */
     .accent-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-active); box-shadow: var(--glow); display: inline-block; vertical-align: middle; margin-right: 8px; }
+
+    /* Respect users who prefer reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
   </style>
 </head>
 <body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- Background bokeh (decorative) -->
+  <canvas id="bokeh" aria-hidden="true"></canvas>
+
   <div class="app-shell">
     <!-- ======================
          HEADER / NAV
@@ -336,7 +403,7 @@
       <div class="topbar">
         <a class="brand" href="#home" data-link aria-label="Go to Home">
           <span class="logo" aria-hidden="true" title="e2v3"></span>
-          <h1>CV<span>•E2</span></h1>
+          <h1>CV<span> • E2</span></h1>
         </a>
         <nav aria-label="Primary">
           <a class="nav-btn" data-link href="#home" data-active="true">Home</a>
@@ -345,30 +412,36 @@
           <a class="nav-btn" data-link href="#services">Services</a>
         </nav>
         <div class="quick-cta">
-          <button class="cta ghost" id="toggleAccent" title="Toggle accent color">Accent</button>
-          <a class="cta" href="#Hashem" data-link aria-label="Hashem">בס"ד</a>
+          <button class="cta ghost" id="toggleAccent" type="button" title="Change accent color">Accent</button>
+          <a class="cta" href="#Hashem" data-link aria-label="Dedication"><span lang="he" dir="rtl">בס"ד</span></a>
         </div>
       </div>
     </header>
+
     <!-- ======================
          MAIN CONTENT
          ====================== -->
-    <main>
-<!-- HOME -->
+    <main id="main" tabindex="-1">
+
+      <!-- HOME -->
       <section id="home" class="panel">
         <div class="hero">
           <div>
-            <div class="badge"><span class="pulse" aria-hidden="true"></span> Digital Portfolio • Live CV</div>
-            <h2><span class="underline">A Capable Professional, at your service</span></h2>
-            <p class="muted">Welcome to the third version of my digital portfolio which also acts as my live CV.</p>
-            <p class="muted">I love many things and technology is one of them.</p>
+            <div class="badge"><span class="pulse" aria-hidden="true"></span> Digital Portfolio &amp; Live CV</div>
+            <h2><span class="underline">Technology, data, and operations professional</span></h2>
+            <p class="muted">Welcome to the third edition of this site, please enjoy and feel free to reach out for anything.</p>
+            <p class="muted">Technology is one of my core interests, supported by a strong foundation in science and mathematics.</p>
+            <div class="hero-actions">
+              <a class="cta primary" data-link href="#projects">View projects</a>
+              <a class="cta ghost" data-link href="#about">About &amp; contact</a>
+            </div>
           </div>
           <div>
             <div class="card" style="min-height: 220px; display: grid; place-items: center; text-align: center;">
               <div>
                 <div class="accent-dot" aria-hidden="true"></div>
                 <strong>Project Showcase</strong>
-                <p class="muted">Check out the projects page for some cool creations.</p>
+                <p class="muted">Browse selected work, from data science and 3D modeling to interactive JavaScript.</p>
               </div>
             </div>
           </div>
@@ -377,218 +450,218 @@
         <div class="grid">
           <article class="card">
             <h3>Digital Automation</h3>
-            <p>Too many tools are available to the masses, let me help you cut through the noise.</p>
+            <p>With so many tools available, it is hard to know which ones matter. I help you cut through the noise and put the right ones to work.</p>
           </article>
           <article class="card">
             <h3>Good Faith</h3>
-            <p>Here to help, and I’ll do just that. Feel free to let me know what you are looking for.</p>
+            <p>I approach every engagement in good faith. Tell me what you are looking for, and I will help you get there.</p>
           </article>
           <article class="card">
-            <h3>Knowledgeable</h3>
-            <p>Broad, hands-on understanding across science and technology.</p>
+            <h3>Broad Expertise</h3>
+            <p>Hands-on understanding across science and technology.</p>
           </article>
         </div>
       </section>
-<!-- PROJECTS -->
+
       <!-- PROJECTS -->
       <section id="projects" class="panel" hidden>
-  <h2 class="underline">Projects</h2>
-  <p class="muted">Explore some of my work. Each project page opens in a new tab.</p>
-  <div class="grid projects">
-    <a class="card link-card" href="/18/pages/ds-mle.html" target="_blank" rel="noopener">
-      <h3>DS / MLE</h3>
-      <p>Data Science & Machine Learning Engineering</p>
-      <img class="thumb" src="/18/img/01DS.webp" alt="ds icon" />
-      <p>Real-world data + powerful algorithms = meaningful insights</p>
-    </a>
+        <h2 class="underline">Projects</h2>
+        <p class="muted">A selection of my work. Each project opens in a new tab.</p>
 
-    <a class="card link-card" href="/18/pages/blender.html" target="_blank" rel="noopener">
-      <h3>Blender Projects</h3>
-      <p>3D Modeling and Animations</p>
-      <img class="thumb" src="/18/img/02blender.webp" alt="blenders ico" />
-      <p>3d Modeling, Animating, Shading, Physics Simulations, Python compatible, etc.</p>
-    </a>
-   </div>
-        
- <p class="muted">The following are more personal projects up for sharing.</p>
-        
-  <div class="grid projects"> 
-    <a class="card link-card" href="/18/pages/misc.html" target="_blank" rel="noopener">
-      <h3>Personal</h3>
-      <p>Other personal side projects</p>
-      <img class="thumb" src="/18/img/06misc.webp" alt="misc ico" />
-    </a>
-  </div>
+        <h3 class="section-title">Featured work</h3>
+        <div class="grid projects">
+          <a class="card link-card" href="/18/pages/ds-mle.html" target="_blank" rel="noopener">
+            <h3>DS / MLE</h3>
+            <p>Data Science &amp; Machine Learning Engineering</p>
+            <img class="thumb" src="/18/img/01DS.webp" alt="Data science project icon" />
+            <p>Real-world data and powerful algorithms combine to produce meaningful insights.</p>
+          </a>
 
- <p class="muted">These last three were fun and small side-projects.</p>
-        
-   <div class="grid projects">       
-    <a class="card link-card" href="/18/pages/clocks.html" target="_blank" rel="noopener">
-      <h3>JS Clocks</h3>
-      <p>JavaScript analog clocks</p>
-      <img class="thumb" src="/18/img/03JSclocks.webp" alt="jsclocks ico" />
-    </a>
+          <a class="card link-card" href="/18/pages/blender.html" target="_blank" rel="noopener">
+            <h3>Blender Projects</h3>
+            <p>3D modeling and animation</p>
+            <img class="thumb" src="/18/img/02blender.webp" alt="Blender project icon" />
+            <p>Modeling, animation, shading, physics simulations, Python-compatible workflows, and more.</p>
+          </a>
+        </div>
 
-    <a class="card link-card" href="/18/pages/dynamicletters.html" target="_blank" rel="noopener">
-      <h3>Dynamic Letters</h3>
-      <p>JS/HTML/CSS animations akin to the Matrix rain effect</p>
-      <img class="thumb" src="/18/img/04DynLetters.webp" alt="dyn letters ico" />
-    </a>
+        <h3 class="section-title">Personal projects</h3>
+        <p class="muted">Additional personal projects, shared here for interest.</p>
+        <div class="grid projects">
+          <a class="card link-card" href="/18/pages/misc.html" target="_blank" rel="noopener">
+            <h3>Personal</h3>
+            <p>Other personal side projects</p>
+            <img class="thumb" src="/18/img/06misc.webp" alt="Personal projects icon" />
+          </a>
+        </div>
 
-    <a class="card link-card" href="/18/pages/minigames.html" target="_blank" rel="noopener">
-      <h3>Mini-games</h3>
-      <p>Mini-projects to learn game mechanics</p>
-      <img class="thumb" src="/18/img/05minigames.webp" alt="mini games ico" />
-    </a>
-   </div>
-     
+        <h3 class="section-title">Side projects</h3>
+        <p class="muted">Three small projects built for enjoyment and learning.</p>
+        <div class="grid projects">
+          <a class="card link-card" href="/18/pages/clocks.html" target="_blank" rel="noopener">
+            <h3>JS Clocks</h3>
+            <p>JavaScript analog clocks</p>
+            <img class="thumb" src="/18/img/03JSclocks.webp" alt="JavaScript clocks icon" />
+          </a>
 
-</section>
+          <a class="card link-card" href="/18/pages/dynamicletters.html" target="_blank" rel="noopener">
+            <h3>Dynamic Letters</h3>
+            <p>JS / HTML / CSS animations inspired by the Matrix digital rain effect</p>
+            <img class="thumb" src="/18/img/04DynLetters.webp" alt="Dynamic letters icon" />
+          </a>
 
-<!-- ABOUT-->
+          <a class="card link-card" href="/18/pages/minigames.html" target="_blank" rel="noopener">
+            <h3>Mini-games</h3>
+            <p>Small projects exploring game mechanics</p>
+            <img class="thumb" src="/18/img/05minigames.webp" alt="Mini-games icon" />
+          </a>
+        </div>
+      </section>
+
+      <!-- ABOUT -->
       <section id="about" class="panel" hidden>
         <h2 class="underline">About Me</h2>
-        <p class="muted"> Born and raised in the US and moved to Israel around 2013, shortly after finishing University. Strong background in the sciences, math, and technology. 
-        Variety of work experiences, including 'Technical Support' for IBM - Security, 'Controls Manager' for a Bio-tech Startup, 'Legal Assistant' for a law firm dealing with the US Credit System, and more.
-        Also served as a 'Lone-Soldier' in the IDF and contribute to reserve-duty as needed.</p>
+        <p class="muted">
+          Raised in the United States and based in Israel since around 2013.
+          I bring a strong foundation in science, mathematics, and technology, along with a varied professional background.
+        </p>
 
+        <h3 class="section-title">Experience</h3>
+        <ul class="facts">
+          <li><strong>Technical Support</strong><span>IBM Security</span></li>
+          <li><strong>Controls Manager & Technician</strong><span>Biotech startup</span></li>
+          <li><strong>Legal Assistant</strong><span>Law firm working in the US credit system</span></li>
+        
+        </ul>
+
+        <h3 class="section-title">Credentials</h3>
         <div class="grid" id="credentialsGrid">
-          <div class="card cred-card" tabindex="0" role="button" aria-label="University Graduate credential">
+          <div class="card cred-card" tabindex="0" role="button" aria-label="Preview University Graduate credential">
             <h3>University Graduate</h3>
-            <p>B.Sc. Degree from a respected State University.</p>
+            <p>B.Sc. degree from a respected state university.</p>
             <div class="thumb-row">
               <img class="thumb" src="/18/img/university.webp" alt="University certificate" />
             </div>
           </div>
 
-          <div class="card cred-card" tabindex="0" role="button" aria-label="TEFL Certified credential">
+          <div class="card cred-card" tabindex="0" role="button" aria-label="Preview TEFL Certified credential">
             <h3>TEFL Certified</h3>
-            <p>Trained to assist those whose first language is not English.</p>
+            <p>Trained to support learners whose first language is not English.</p>
             <div class="thumb-row">
               <img class="thumb" src="/18/img/tefl.webp" alt="TEFL certificate" />
             </div>
           </div>
 
-          <div class="card cred-card" tabindex="0" role="button" aria-label="Open Digital Certifications">
+          <div class="card cred-card" tabindex="0" role="button" aria-label="Preview Digital Certifications">
             <h3>Digital Certifications</h3>
-            <p>Certified Data Scientist & Machine Learning Engineer (Python / SQL).<br/>Certified and well-versed with Microsoft products.</p>
+            <p>Certified Data Scientist &amp; Machine Learning Engineer (Python / SQL).<br/>Certified and proficient in Microsoft products.</p>
             <div class="thumb-row">
-              <img class="thumb" src="/18/img/cert1.webp" alt="Digital certification placeholder image 1" />
-              <img class="thumb" src="/18/img/cert2.webp" alt="Digital certification placeholder image 2" />
+              <img class="thumb" src="/18/img/cert1.webp" alt="Digital certification, image 1" />
+              <img class="thumb" src="/18/img/cert2.webp" alt="Digital certification, image 2" />
             </div>
           </div>
         </div>
 
-          <!-- secondary text -->
-  <p class="muted" style="margin-top:16px;">
-      Thanks for visiting. If you have any questions or comments, I’d love to hear from you.
-  </p>
+        <h3 class="section-title" id="contact">Get in touch</h3>
+        <p class="muted">Thank you for visiting. Questions, comments, and project inquiries are always welcome.</p>
 
-     <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;">
+        <div class="card" style="min-height:0; margin-top:16px; display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;">
           <div>
             <div class="accent-dot" aria-hidden="true"></div>
-            <strong>Email me directly:</strong>
+            <strong>Email me directly</strong>
             <p class="muted" id="emailText" style="margin:6px 0 0 0;">
               <a id="emailLink" href="mailto:e2port18@gmail.com">e2port18@gmail.com</a>
             </p>
           </div>
-          <button class="cta" id="copyEmailBtn" type="button" title="Copy email to clipboard">Copy email</button>
+          <button class="cta" id="copyEmailBtn" type="button" title="Copy email address to clipboard">Copy email</button>
         </div>
-        
       </section>
 
-      
-<!-- SERVICES -->
-<section id="services" class="panel" hidden>
-  <h2 class="underline">Services</h2>
-  <!-- intro text -->
-  <p class="muted">
-    The following three tools / services are mostly free, have been around many years,
-    and are highly useful for any profession. Want to learn how to use them or simply
-    need a project derived from them, let me know.
-  </p>
+      <!-- SERVICES -->
+      <section id="services" class="panel" hidden>
+        <h2 class="underline">Services</h2>
+        <p class="muted">
+          The following three tools have been around for many years, are mostly free, and are valuable in virtually any profession.
+          If you would like training on any of them, or a project built with them, please get in touch.
+        </p>
 
-  <!-- 3-up grid: Google / Python / Blender -->
-  <div class="grid" id="credentialsGrid2">
-    
-    <div class="card cred-card" tabindex="0" role="button" aria-label="Blender services">
-      <h3>Blender</h3>
-      <p>3D Modeling, Rendering images/videos, Physics Simulations, Python compatible, and more.</p>
-      <div class="thumb-row">
-        <img class="thumb" src="/18/img/blenderlinks.webp" alt="Blender links" />
-      </div>
-    </div>   
+        <div class="grid" id="credentialsGrid2">
+          <div class="card cred-card" tabindex="0" role="button" aria-label="Preview Blender services">
+            <h3>Blender</h3>
+            <p>3D modeling, image and video rendering, physics simulations, Python-compatible workflows, and more.</p>
+            <div class="thumb-row">
+              <img class="thumb" src="/18/img/blenderlinks.webp" alt="Blender links" />
+            </div>
+          </div>
 
-    <div class="card cred-card" tabindex="0" role="button" aria-label="Python services">
-      <h3>Python</h3>
-      <p>Making programming more feasible for the masses.</p>
-      <div class="thumb-row">
-        <img class="thumb" src="/18/img/pythonlinks.webp" alt="Python links" />
-      </div>
-    </div>
-    
-    <div class="card cred-card" tabindex="0" role="button" aria-label="Google services">
-      <h3>Google</h3>
-      <p>Search, GMail, Docs, Sheets, YouTube - they speak for themselves</p>
-      <div class="thumb-row">
-        <img class="thumb" src="/18/img/googlelinks.webp" alt="Google" />
-      </div>
-    </div>
+          <div class="card cred-card" tabindex="0" role="button" aria-label="Preview Python services">
+            <h3>Python</h3>
+            <p>Making programming accessible to a wider audience.</p>
+            <div class="thumb-row">
+              <img class="thumb" src="/18/img/pythonlinks.webp" alt="Python links" />
+            </div>
+          </div>
 
-  </div>
-  
-  <!-- secondary text -->
-  <p class="muted" style="margin-top:16px;">
-    Besides the above, feel free to communicate regarding any ideas or questions you may have.
-    I am happy to help with the following and more:
-  </p>
+          <div class="card cred-card" tabindex="0" role="button" aria-label="Preview Google services">
+            <h3>Google</h3>
+            <p>Search, Gmail, Docs, Sheets, and YouTube: familiar tools worth mastering.</p>
+            <div class="thumb-row">
+              <img class="thumb" src="/18/img/googlelinks.webp" alt="Google links" />
+            </div>
+          </div>
+        </div>
 
-  <!-- 7-up grid BELOW the paragraph -->
-  <div class="grid">
-    <div class="card">
-      <h3>Contract Work</h3>
-      <p>Boosting efficiency for any team or organization; can upgrade your CRM, create SOP/Procedure documentation as needed, and more. </p>
-    </div>
-    <div class="card">
-      <h3>Consulting</h3>
-      <p>Offering practical insights to boost team and company's performance.</p>
-    </div>
-    <div class="card">
-      <h3>Data Science & ML</h3>
-      <p>EDA, feature engineering, model training, and clear evaluation.</p>
-    </div>
-    <div class="card">
-      <h3>English</h3>
-      <p>TEFOL certified and native speaker offering professional level English services such as proof-reading, editing graduate theses for grammar/structure, conversational practice, and more.</p>
-    </div>
-    <div class="card">
-      <h3>Remote Ready</h3>
-      <p>All necessary equipement set up already; a productive work station that can assist globally. Personal fiber internet access paired with a JBL Microphone for clear and crisp communications.</p>
-    </div>
-    <div class="card">
-      <h3>Consumer-Protection Ops</h3>
-      <p>Knowledgable in the US legal and financial systems to provide assistance related to Credit Scores, Credit Reports, FDCPA violations and more.</p>
-    </div>
-    <div class="card">
-      <h3>Video & Creative</h3>
-      <p>Video editing/production, creating overlays, constructing motion graphics, and more.</p>
-    </div>
-    <div class="card">
-      <h3>Tech Tutoring</h3>
-      <p>Hands-on help for beginners—practical, patient, and structured.</p>
-    </div>
-  </div>
-</section>
+        <h3 class="section-title">Additional services</h3>
+        <p class="muted">
+          Beyond the above, I welcome conversations about any idea or question you may have.
+          I am happy to help with the following, and more:
+        </p>
 
-<!-- HASHEM -->
+        <div class="grid wide">
+          <div class="card">
+            <h3>Contract Work</h3>
+            <p>Improving efficiency for teams and organizations, including CRM upgrades, SOP and procedure documentation, and more.</p>
+          </div>
+          <div class="card">
+            <h3>Consulting</h3>
+            <p>Practical insights to improve team and company performance.</p>
+          </div>
+          <div class="card">
+            <h3>Data Science &amp; ML</h3>
+            <p>Exploratory data analysis, feature engineering, model training, and clear evaluation.</p>
+          </div>
+          <div class="card">
+            <h3>English</h3>
+            <p>TEFL-certified native speaker offering professional proofreading, editing of graduate theses for grammar and structure, conversational practice, and more.</p>
+          </div>
+          <div class="card">
+            <h3>Remote Ready</h3>
+            <p>A fully equipped workstation for global collaboration, with personal fiber internet and a JBL microphone for clear communication.</p>
+          </div>
+          <div class="card">
+            <h3>Consumer-Protection Ops</h3>
+            <p>Knowledgeable in the US legal and financial systems, with assistance on credit scores, credit reports, FDCPA violations, and more.</p>
+          </div>
+          <div class="card">
+            <h3>Video &amp; Creative</h3>
+            <p>Video editing and production, overlays, motion graphics, and more.</p>
+          </div>
+          <div class="card">
+            <h3>Tech Tutoring</h3>
+            <p>Hands-on help for beginners: practical, patient, and structured.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- HASHEM -->
       <section id="Hashem" class="panel" hidden>
         <h2 class="underline">Baruch Hashem</h2>
         <p class="muted" style="margin-bottom:14px;">
-        בס"ד  or BS"D is a Jewish acronym for the Aramaic phrase B'siyata D'shmaya (בסיעתא דשמיא), which translates to "with the help of Heaven"; 
-          God willing, this site will help illuminate some of my capabilities and help with regards to parnassah. 
-          There is a tradition of marking texts with this invocation of God's help dating back centuries and can be found in the writings of early rabbinic authorities like Rabbi Yosef Karo in the 15th century.
-        </p> 
-      
+          <span lang="he" dir="rtl">בס"ד</span> (BS"D) is an acronym for the Aramaic phrase B'siyata D'shmaya
+          (<span lang="he" dir="rtl">בסיעתא דשמיא</span>), which translates to "with the help of Heaven."
+          God willing, this site will help illuminate some of my capabilities and support my parnassah.
+          Marking texts with this invocation is a tradition that dates back centuries and can be found in the writings of early rabbinic authorities such as Rabbi Yosef Karo (15th–16th century).
+        </p>
       </section>
     </main>
 
@@ -602,18 +675,18 @@
          ====================== -->
     <footer>
       <div class="ftr-wrap">
-        <div class="sig">© <b><span id="year"></span></b> • e2 digital portfolio</div>
+        <div class="sig">© <b><span id="year"></span></b> E2 Digital Portfolio</div>
         <div class="sig">Accent: <b id="accentName" aria-live="polite">cyan</b></div>
       </div>
     </footer>
   </div>
 
-  <!-- Credentials Modal -->
-  <dialog class="modal" id="zoomModal" aria-label="Credential preview">
+  <!-- Preview Modal (credentials and services) -->
+  <dialog class="modal" id="zoomModal" aria-label="Preview">
     <div class="modal-card">
       <div class="modal-header">
         <h3 class="modal-title" id="modalTitle">Preview</h3>
-        <button class="modal-x" id="modalClose" aria-label="Close">×</button>
+        <button class="modal-x" id="modalClose" type="button" aria-label="Close preview">×</button>
       </div>
       <p class="muted" id="modalText"></p>
       <div class="modal-images" id="modalImages"></div>
@@ -625,8 +698,8 @@
        ====================== -->
   <script>
     /*
-      SPA routing, accent cycling, stronger accent pulses, laser animation (CSS),
-      credentials zoom modal, copy-email helper.
+      SPA routing, accent cycling, accent pulses, preview modal,
+      copy-email helper, and the background bokeh effect.
     */
 
     const sections = Array.from(document.querySelectorAll('main > section'));
@@ -636,13 +709,17 @@
 
     /* ── SPA navigation helpers ───────────────────────────────────────────── */
     function showSection(id) {
+      const changed = sections.some(s => !s.hidden && s.id !== id);
       sections.forEach(s => s.hidden = (s.id !== id));
       document.querySelectorAll('.nav-btn').forEach(b => {
-        b.setAttribute('data-active', String(b.getAttribute('href') === '#' + id));
+        const active = b.getAttribute('href') === '#' + id;
+        b.setAttribute('data-active', String(active));
+        if (active) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
       });
       if (!location.hash || location.hash.substring(1) !== id) {
         history.replaceState(null, '', '#' + id);
       }
+      if (changed) window.scrollTo({ top: 0 });
     }
     function initRoute() {
       const id = (location.hash || '#home').substring(1);
@@ -678,7 +755,7 @@
       pulseGlow();
     });
 
-    /* ── Subtle but stronger glow animations ─────────────────────────────── */
+    /* ── Accent pulse animation ──────────────────────────────────────────── */
     function pulseGlow() {
       document.querySelectorAll('.brand .logo, .badge .pulse').forEach(el => {
         el.animate(
@@ -690,7 +767,7 @@
     // Ambient micro-glow on the header logo (slower/longer)
     setInterval(() => {
       const logo = document.querySelector('.brand .logo');
-      if (!logo) return;
+      if (!logo || document.hidden) return;
       logo.animate(
         [
           { filter: getComputedStyle(logo).filter },
@@ -701,7 +778,7 @@
       );
     }, 6500);
 
-    /* ── Credentials zoom modal ──────────────────────────────────────────── */
+    /* ── Preview modal ───────────────────────────────────────────────────── */
     const dlg = document.getElementById('zoomModal');
     const modalTitle = document.getElementById('modalTitle');
     const modalText = document.getElementById('modalText');
@@ -727,7 +804,6 @@
       if (typeof dlg.showModal === 'function') {
         dlg.showModal();
       } else {
-        // Fallback if <dialog> not supported
         dlg.setAttribute('open', '');
       }
     }
@@ -735,13 +811,13 @@
       if (typeof dlg.close === 'function') dlg.close();
       else dlg.removeAttribute('open');
     }
-document.querySelectorAll('.cred-card').forEach(card => {
-  card.addEventListener('click', () => openModalFromCard(card));
-  card.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModalFromCard(card); }
-  });
-  card.style.cursor = 'zoom-in';
-});
+    document.querySelectorAll('.cred-card').forEach(card => {
+      card.addEventListener('click', () => openModalFromCard(card));
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModalFromCard(card); }
+      });
+      card.style.cursor = 'zoom-in';
+    });
     modalClose.addEventListener('click', closeModal);
     dlg.addEventListener('click', (e) => { if (e.target === dlg) closeModal(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && dlg.open) closeModal(); });
@@ -757,9 +833,122 @@ document.querySelectorAll('.cred-card').forEach(card => {
         copyBtn.textContent = 'Copied!';
         setTimeout(() => (copyBtn.textContent = 'Copy email'), 1200);
       } catch {
-        alert('Could not copy. Please copy manually.');
+        alert('Unable to copy automatically. Please copy the address manually.');
       }
     });
+
+    /* ── Bokeh background ────────────────────────────────────────────────────
+       Soft orange and blue discs fade in and out at random positions and drift
+       slowly. Lightweight: one canvas, ~30 fps, 9-16 orbs, pauses when the tab
+       is hidden. With "reduce motion" enabled it draws a static set instead.
+
+       Tuning:
+         COUNT_DESKTOP / COUNT_MOBILE → number of lights on screen
+         LIFE_MIN / LIFE_MAX          → how long each light lasts (ms)
+         PEAK_MIN / PEAK_MAX          → brightness at full glow (0 to 1)
+         PALETTE                      → colors (hex)
+    --------------------------------------------------------------------------- */
+    (function initBokeh() {
+      const canvas = document.getElementById('bokeh');
+      if (!canvas || !canvas.getContext) return;
+      const ctx = canvas.getContext('2d');
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+      const COUNT_DESKTOP = 16, COUNT_MOBILE = 9;
+      const LIFE_MIN = 7000, LIFE_MAX = 13000;
+      const PEAK_MIN = 0.16, PEAK_MAX = 0.34;
+      const PALETTE = [
+        '#ff9a3c', '#ffb35c', '#ff7a1f', '#ffc27a',   // oranges
+        '#4aa8ff', '#6cc4ff', '#3d86ff', '#8fd3ff'    // blues
+      ].map(hexToRgb);
+
+      let w = 0, h = 0, dpr = 1, orbs = [], raf = 0, last = 0;
+
+      function hexToRgb(hex) {
+        const n = parseInt(hex.slice(1), 16);
+        return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+      }
+      const rand = (a, b) => a + Math.random() * (b - a);
+
+      function spawn(now, initial) {
+        const base = Math.min(w, h);
+        const life = rand(LIFE_MIN, LIFE_MAX);
+        return {
+          x: rand(0, w), y: rand(0, h),
+          r: Math.min(150, rand(base * 0.05, base * 0.17)),
+          vx: rand(-6, 6), vy: rand(-6, 6),                 // px per second
+          rgb: PALETTE[(Math.random() * PALETTE.length) | 0],
+          peak: rand(PEAK_MIN, PEAK_MAX),
+          life,
+          start: initial ? now - rand(0, life) : now + rand(0, 2500)
+        };
+      }
+
+      function drawOrb(o, a) {
+        const [r, g, b] = o.rgb;
+        const grad = ctx.createRadialGradient(o.x, o.y, 0, o.x, o.y, o.r);
+        grad.addColorStop(0,   `rgba(${r},${g},${b},${a * 0.55})`);
+        grad.addColorStop(0.7, `rgba(${r},${g},${b},${a * 0.7})`);
+        grad.addColorStop(0.9, `rgba(${r},${g},${b},${a})`);   // slightly brighter rim, like a real lens
+        grad.addColorStop(1,   `rgba(${r},${g},${b},0)`);
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(o.x, o.y, o.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      function drawStatic() {
+        ctx.clearRect(0, 0, w, h);
+        orbs.forEach(o => drawOrb(o, o.peak * 0.6));
+      }
+
+      function frame(now) {
+        raf = requestAnimationFrame(frame);
+        if (now - last < 33) return;                          // cap at ~30 fps
+        const dt = Math.min((now - last) / 1000, 0.1);
+        last = now;
+        ctx.clearRect(0, 0, w, h);
+        for (let i = 0; i < orbs.length; i++) {
+          const o = orbs[i];
+          const t = (now - o.start) / o.life;
+          if (t < 0) continue;                                // waiting to appear
+          if (t >= 1) { orbs[i] = spawn(now, false); continue; }
+          o.x += o.vx * dt; o.y += o.vy * dt;
+          const a = o.peak * Math.pow(Math.sin(Math.PI * t), 2); // smooth fade in and out
+          drawOrb(o, a);
+        }
+      }
+
+      function start() {
+        cancelAnimationFrame(raf);
+        if (reduceMotion.matches) { drawStatic(); return; }
+        last = 0;
+        raf = requestAnimationFrame(frame);
+      }
+
+      function resize() {
+        dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+        w = window.innerWidth; h = window.innerHeight;
+        canvas.width = Math.round(w * dpr);
+        canvas.height = Math.round(h * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const count = w < 700 ? COUNT_MOBILE : COUNT_DESKTOP;
+        const now = performance.now();
+        while (orbs.length < count) orbs.push(spawn(now, true));
+        orbs.length = count;
+        if (reduceMotion.matches) drawStatic();
+      }
+
+      let resizeTimer;
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(resize, 150);
+      });
+      reduceMotion.addEventListener?.('change', start);
+
+      resize();
+      start();
+    })();
 
     /* ── Init ────────────────────────────────────────────────────────────── */
     document.getElementById('year').textContent = new Date().getFullYear();
