@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Blender 3D Modeling | E2 Portfolio</title>
+  <meta name="description" content="Blender 3D modeling projects: renders and video walkthroughs. E2 Digital Portfolio." />
+  <meta name="theme-color" content="#51414F" />
+  <link rel="icon" href="/18/img/e2v3.png" type="image/x-icon" sizes="any" />
+
+  <!-- Typeface: Plus Jakarta Sans (falls back to the system font if it cannot load) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!--
+  • To add, edit, or remove an item: scroll to the ITEMS list in the script at the bottom
+    of this file. Each item is one block; copy an existing one and change the values.
+    The cards, filter buttons, and item count update automatically.
+  -->
+  <style>
+    /* =========================
+       THEME VARIABLES (shared with the main site)
+       ========================= */
+    :root {
+      --quartz:   #51414F;
+      --wisteria: #BDB5D5;
+
+      --bg-1: #16121e;
+      --bg-2: #1d1827;
+      --ink-1: #ececf1;
+      --ink-2: #c3c4cc;
+
+      --accent-magenta: #ff2bd6;
+      --accent-silver:  #e6e7eb;
+      --accent-cyan:    #30e0ff;
+      --accent-active: var(--accent-cyan);
+
+      --radius-xl: 18px;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 8px;
+      --shadow-soft: 0 8px 26px rgba(10,6,16,0.38);
+      --shadow-edge: 0 0 0 1px rgba(255,255,255,0.05) inset;
+      --outline: 1px solid rgba(255,255,255,0.12);
+
+      --font: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", Arial, sans-serif;
+
+      --glow: 0 0 6px var(--accent-active),
+              0 0 24px var(--accent-active),
+              0 0 48px var(--accent-active),
+              0 0 84px color-mix(in srgb, var(--accent-active) 70%, transparent);
+    }
+
+    /* =========================
+       BASE
+       ========================= */
+    *, *::before, *::after { box-sizing: border-box; }
+    html { min-height: 100%; background: var(--quartz); }
+    body {
+      margin: 0; min-height: 100%;
+      color: var(--ink-1);
+      font: 16px/1.65 var(--font);
+      letter-spacing: 0.1px;
+      -webkit-font-smoothing: antialiased;
+    }
+    body::before {
+      content: ""; position: fixed; inset: 0; z-index: -2;
+      background: linear-gradient(180deg, var(--quartz) 0%, var(--wisteria) 100%);
+    }
+    #bokeh { position: fixed; inset: 0; z-index: -1; width: 100%; height: 100%; pointer-events: none; }
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+    button { font: inherit; color: inherit; }
+    :focus-visible { outline: 2px solid var(--accent-active); outline-offset: 3px; }
+
+    .app-shell { min-height: 100dvh; display: grid; grid-template-rows: auto 1fr auto; }
+
+    /* =========================
+       HEADER
+       ========================= */
+    header {
+      position: sticky; top: 0; z-index: 50;
+      -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+      background: rgba(30, 22, 32, 0.58);
+      border-bottom: var(--outline);
+    }
+    .topbar {
+      max-width: 1100px; margin: 0 auto; padding: 14px 20px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    }
+    .brand {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 12px; border: var(--outline); border-radius: var(--radius-md);
+      background: rgba(255,255,255,0.04); box-shadow: var(--shadow-edge);
+    }
+    .brand .logo {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: url('/18/img/e2v3.webp') center/contain no-repeat;
+      filter: drop-shadow(0 0 12px var(--accent-active)) drop-shadow(0 0 28px var(--accent-active));
+      animation: neonPulse 5s ease-in-out infinite;
+    }
+    @keyframes neonPulse {
+      0%, 100% { filter: drop-shadow(0 0 12px var(--accent-active)) drop-shadow(0 0 28px var(--accent-active)); }
+      50%      { filter: drop-shadow(0 0 22px var(--accent-active)) drop-shadow(0 0 64px var(--accent-active)); }
+    }
+    .brand h1 { font-size: 15px; margin: 0; font-weight: 700; letter-spacing: .6px; }
+    .brand span { color: var(--ink-2); font-weight: 500; }
+    .top-actions { display: flex; gap: 10px; align-items: center; }
+
+    .cta {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 16px; border-radius: var(--radius-sm);
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(255,255,255,0.05);
+      color: var(--ink-1); font-weight: 600; letter-spacing: .2px;
+      box-shadow: var(--shadow-edge);
+      transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
+      cursor: pointer;
+    }
+    .cta:hover { box-shadow: var(--shadow-soft), var(--shadow-edge), 0 0 0 1px var(--accent-active) inset; transform: translateY(-1px); }
+
+    /* =========================
+       MAIN PANEL
+       ========================= */
+    main { max-width: 1100px; width: 100%; margin: 32px auto 40px; padding: 0 20px; }
+    .panel {
+      border: var(--outline); border-radius: var(--radius-xl);
+      padding: 28px;
+      background: rgba(20, 16, 28, 0.72);
+      -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+      box-shadow: var(--shadow-soft), var(--shadow-edge);
+    }
+    .badge {
+      display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2);
+      padding: 8px 14px; border-radius: 999px; border: var(--outline); box-shadow: var(--shadow-edge);
+      background: rgba(255,255,255,0.05);
+    }
+    .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-active); box-shadow: var(--glow); }
+    .panel h2 { font-size: clamp(26px, 3.6vw, 36px); line-height: 1.15; margin: 18px 0 12px; letter-spacing: -0.4px; }
+    .muted { color: var(--ink-2); }
+    .intro { max-width: 70ch; margin: 0; }
+
+    .underline { position: relative; display: inline-block; }
+    .underline::after {
+      content: ""; position: absolute; left: 0; bottom: -4px; height: 3px; width: 100%;
+      background: linear-gradient(90deg, transparent, var(--accent-active), transparent);
+      filter: drop-shadow(0 0 8px var(--accent-active)); opacity: .75;
+    }
+
+    /* Filter bar */
+    .toolbar {
+      margin-top: 26px; padding-top: 18px; border-top: var(--outline);
+      display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+    }
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; }
+    .filter {
+      padding: 8px 14px; border-radius: 999px; cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.04);
+      color: var(--ink-2); font-size: 14px; font-weight: 500;
+      transition: color .18s ease, background .18s ease, border-color .18s ease;
+    }
+    .filter:hover { color: var(--ink-1); background: rgba(255,255,255,0.09); }
+    .filter[aria-pressed="true"] {
+      color: var(--ink-1); background: rgba(255,255,255,0.1);
+      border-color: var(--accent-active);
+    }
+    .count { font-size: 14px; color: var(--ink-2); }
+
+    /* =========================
+       GALLERY CARDS
+       ========================= */
+    .gallery { margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+    .item {
+      display: flex; flex-direction: column; text-align: left; width: 100%;
+      padding: 0; overflow: hidden; cursor: pointer;
+      border: var(--outline); border-radius: var(--radius-lg);
+      background: linear-gradient(180deg, rgba(36,31,48,0.92), rgba(24,20,33,0.94));
+      box-shadow: var(--shadow-edge);
+      transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+    .item:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-soft), var(--shadow-edge);
+      border-color: color-mix(in srgb, var(--accent-active) 55%, rgba(255,255,255,0.2));
+    }
+    .item-media {
+      position: relative; aspect-ratio: 4 / 3; width: 100%;
+      background: linear-gradient(135deg, #2a2338, #181321);
+      border-bottom: 1px solid rgba(255,255,255,0.11);
+      overflow: hidden;
+    }
+    .item-media img { width: 100%; height: 100%; object-fit: cover; }
+    .chip {
+      position: absolute; top: 10px; left: 10px;
+      padding: 4px 10px; border-radius: 999px;
+      font-size: 12.5px; font-weight: 600; letter-spacing: .2px;
+      background: rgba(16, 12, 22, 0.82); border: 1px solid rgba(255,255,255,0.2);
+      -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    }
+    /* Play button overlay for videos */
+    .play {
+      position: absolute; inset: 0; margin: auto; width: 52px; height: 52px; border-radius: 50%;
+      background: rgba(16, 12, 22, 0.72); border: 2px solid var(--accent-active);
+      box-shadow: 0 0 18px color-mix(in srgb, var(--accent-active) 60%, transparent);
+    }
+    .play::after {
+      content: ""; position: absolute; left: 21px; top: 15px;
+      border-style: solid; border-width: 10px 0 10px 17px;
+      border-color: transparent transparent transparent var(--accent-active);
+    }
+    .item-body { display: flex; flex-direction: column; gap: 10px; padding: 16px 16px 14px; flex: 1 1 auto; }
+    .item-title { margin: 0; font-size: 17px; line-height: 1.3; font-weight: 700; letter-spacing: -0.1px; }
+    .item-desc { margin: 0; font-size: 14.5px; color: var(--ink-2); }
+
+    .meta {
+      margin: auto 0 0; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);
+      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 14px;
+    }
+    .meta div { min-width: 0; }
+    .meta dt { font-size: 12.5px; color: var(--ink-2); }
+    .meta dd { margin: 0; font-size: 14.5px; font-weight: 600; overflow-wrap: anywhere; }
+    .item-action { font-size: 14px; font-weight: 600; color: var(--accent-active); }
+
+    .note {
+      margin: 26px 0 0; padding: 14px 16px; max-width: 80ch;
+      border: var(--outline); border-radius: var(--radius-md);
+      background: rgba(255,255,255,0.045); font-size: 14.5px; color: var(--ink-2);
+    }
+    .note strong { color: var(--ink-1); }
+
+    /* =========================
+       LASER BAR + FOOTER
+       ========================= */
+    .laser-wrap { max-width: 1100px; width: 100%; margin: 20px auto 28px; padding: 0 20px; }
+    .laser {
+      position: relative; height: 6px; border-radius: 999px;
+      background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--accent-active) 50%, white) 8%, var(--accent-active) 50%, color-mix(in srgb, var(--accent-active) 50%, white) 92%, transparent 100%);
+      background-size: 400% 100%;
+      filter: drop-shadow(0 0 14px var(--accent-active)) drop-shadow(0 0 34px var(--accent-active));
+      animation: laserScan 6s linear infinite; overflow: hidden;
+    }
+    @keyframes laserScan { from { background-position: 0% 0; } to { background-position: 400% 0; } }
+
+    footer {
+      border-top: var(--outline);
+      background: rgba(30, 22, 32, 0.72);
+      -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    }
+    .ftr-wrap { max-width: 1100px; margin: 0 auto; padding: 18px 20px; color: var(--ink-2); font-size: 13.5px; display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+    .ftr-wrap b { color: var(--ink-1); font-weight: 600; }
+
+    /* =========================
+       VIDEO MODAL
+       ========================= */
+    dialog.modal { border: none; padding: 0; width: min(94vw, 860px); max-width: 860px; background: transparent; color: var(--ink-1); }
+    dialog.modal::backdrop { background: rgba(12, 8, 18, 0.72); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+    .modal-card {
+      background: rgba(28, 23, 38, 0.97); border: var(--outline); border-radius: 18px;
+      box-shadow: var(--shadow-soft), var(--shadow-edge); padding: 18px;
+    }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+    .modal-title { margin: 0; font-size: 18px; letter-spacing: -0.1px; }
+    .modal-sub { margin: 2px 0 0; font-size: 13.5px; color: var(--ink-2); }
+    .modal-x {
+      flex: none; width: 34px; height: 34px; border-radius: 10px; cursor: pointer; font-size: 18px; line-height: 1;
+      background: transparent; border: 1px solid rgba(255,255,255,0.2); box-shadow: var(--shadow-edge);
+    }
+    .modal-x:hover { border-color: var(--accent-active); }
+    .modal-frame { width: 100%; aspect-ratio: 16 / 9; border: none; border-radius: var(--radius-md); background: #000; max-height: 70vh; }
+
+    @media (max-width: 620px) { .panel { padding: 20px; } }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Background bokeh (decorative) -->
+  <canvas id="bokeh" aria-hidden="true"></canvas>
+
+  <div class="app-shell">
+    <header>
+      <div class="topbar">
+        <div class="brand">
+          <span class="logo" aria-hidden="true"></span>
+          <h1>CV<span> • E2</span></h1>
+        </div>
+        <div class="top-actions">
+          <button class="cta" id="toggleAccent" type="button" title="Change accent color">Accent</button>
+          <a class="cta" href="https://e2port.github.io/18" title="Back to portfolio"><span aria-hidden="true">←</span> Back to portfolio</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="panel" aria-labelledby="pageTitle">
+        <div class="badge"><span class="pulse" aria-hidden="true"></span> Project 02: 3D</div>
+        <h2 id="pageTitle"><span class="underline">Blender 3D Modeling</span></h2>
+        <p class="muted intro">A growing collection of renders and video walkthroughs from my ongoing exploration of Blender, the open-source 3D creation software.</p>
+
+        <div class="toolbar">
+          <div class="filters" id="filters" role="group" aria-label="Filter by type"></div>
+          <div class="count" id="count" aria-live="polite"></div>
+        </div>
+
+        <div class="gallery" id="gallery"></div>
+
+      </section>
+    </main>
+
+    <div class="laser-wrap" aria-hidden="true"><div class="laser"></div></div>
+
+    <footer>
+      <div class="ftr-wrap">
+        <div>© <b><span id="year"></span></b> E2 Digital Portfolio</div>
+        <div>Accent: <b id="accentName" aria-live="polite">cyan</b></div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Video modal -->
+  <dialog class="modal" id="videoModal" aria-labelledby="videoTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title" id="videoTitle">Video</h3>
+          <p class="modal-sub" id="videoSub"></p>
+        </div>
+        <button class="modal-x" id="videoClose" type="button" aria-label="Close video">×</button>
+      </div>
+      <iframe class="modal-frame" id="videoFrame" src="" title="Video player"
+        allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+    </div>
+  </dialog>
+
+  <script>
+    /* ==========================================================================
+       1. CONTENT: edit this section to add, change, or remove items
+       ==========================================================================
+
+       To add an item, copy one block below, paste it where you want it to appear
+       (cards show in the same order as this list), and change the values.
+
+       Fields
+         type    (required)  'pdf' | 'app' | 'video' | 'image' | 'file'
+         title   (required)  Name shown on the card
+         url     (required for everything except video)  Link or file path
+         ytid    (required for video)  The part after "v=" in a YouTube link
+         thumb   (optional)  Thumbnail image path. Videos get their YouTube
+                             thumbnail automatically if you leave this out.
+         size    (pdf, app, image, file)  e.g. '1.99 MB'
+         length  (video)  e.g. '12:34'
+         date    (optional)  e.g. 'October 2025'
+         format  (optional)  Overrides the type label, e.g. 'ZIP archive'
+         desc    (optional)  One short sentence under the title.
+                     Tip: if the text contains an apostrophe, wrap it in double
+                     quotes, e.g. desc: "Don't miss this", or write it as \'
+         extra   (optional)  More details as pairs, e.g. [['Updated', 'Oct 2026']]
+
+       Example:
+         { type: 'pdf', title: 'My New Report', url: 'MyReport.pdf',
+           thumb: 'thumbs/myreport.webp', size: '850 KB',
+           desc: 'A short summary of the report.',
+           extra: [['Updated', 'Oct 2026']] },
+    ========================================================================== */
+    const ITEMS = [
+      /* Still to fill in: the length of each video (length: '') and the size of the
+         three Pillow images. Cards hide the Length / Size line until a value is added. */
+
+      { type: 'video',
+        title: 'Volumetrics in Blender Test',
+        ytid: 'mL0fncQoONM',
+        length: '' },                                   // add length, e.g. '12:34'
+
+      { type: 'video',
+        title: 'Suzanne Part 4',
+        ytid: 'c_D91MvW73Y',
+        length: '' },
+
+      { type: 'video',
+        title: 'Python in Blender Test',
+        ytid: 'xtnzJq_Zx3U',
+        length: '' },
+
+      { type: 'video',
+        title: 'Suzanne Part 3',
+        ytid: 'jYjg9XoASVc',
+        length: '' },
+
+      { type: 'video',
+        title: 'Suzanne Part 2',
+        ytid: '15MgmcRxdv8',
+        length: '' },
+
+      { type: 'video',
+        title: 'Calibrating: Project Suzanne',
+        ytid: 'UmdKaRpoO2E',
+        length: '' },
+
+      { type: 'image',
+        title: 'Donuts Closeup',
+        url: 'https://e2port.github.io/github.io/images/don2.png',
+        thumb: 'thumbs/cdon1.webp',
+        format: 'PNG image',
+        size: '2.07 MB' },
+
+      { type: 'image',
+        title: 'Plated Donuts',
+        url: 'https://e2port.github.io/github.io/images/donp.png',
+        thumb: 'thumbs/pdon1.webp',
+        format: 'PNG image',
+        size: '583 KB' },
+
+      { type: 'image',
+        title: 'Hover Donuts',
+        url: 'https://e2port.github.io/github.io/images/donh.png',
+        thumb: 'thumbs/hdon1.webp',
+        format: 'PNG image',
+        size: '2.61 MB' },
+
+      { type: 'image',
+        title: 'Donuts: Background Removed',
+        url: 'https://e2port.github.io/BH/images/cdont.webp',
+        thumb: 'thumbs/cdont1.webp',
+        format: 'WebP image',
+        size: '111 KB' },
+
+      { type: 'image',
+        title: 'Pillow: Wireframe',
+        url: 'thumbs/pillowireframe.png',
+        thumb: 'thumbs/pwire.webp',
+        format: 'PNG image',
+        size: '' },                                     // add size, e.g. '1.2 MB'
+
+      { type: 'image',
+        title: 'Pillow: Shade Flat',
+        url: 'thumbs/pshadeflat.png',
+        thumb: 'thumbs/psflat.webp',
+        format: 'PNG image',
+        size: '' },
+
+      { type: 'image',
+        title: 'Pillow: Shade Smooth',
+        url: 'thumbs/pshadesmooth.png',
+        thumb: 'thumbs/pssmooth.webp',
+        format: 'PNG image',
+        size: '' },
+
+      { type: 'video',
+        title: 'From Mesh to Pillow',
+        ytid: 'PGOEjSk8Ifo',
+        length: '' },
+
+      { type: 'video',
+        title: 'Blender Lights',
+        ytid: 'D71gbGEpZLc',
+        length: '' },
+
+      { type: 'video',
+        title: 'Beveled Cube',
+        ytid: 'SYMdzpRRpdk',
+        length: '' },
+
+      { type: 'video',
+        title: 'Donut Spot',
+        ytid: 'IzXrNRQqlUg',
+        length: '' }
+    ];
+
+    /* Type settings: labels and button text for each kind of item.
+       'metric' is the name of the size/length field shown on the card. */
+    const TYPES = {
+      pdf:   { short: 'PDF',   label: 'PDF document', plural: 'PDFs',     action: 'View PDF',    metric: 'Size' },
+      app:   { short: 'App',   label: 'Web app',      plural: 'Web apps', action: 'Launch app',  metric: 'Size' },
+      video: { short: 'Video', label: 'Video',        plural: 'Videos',   action: 'Watch video', metric: 'Length' },
+      image: { short: 'Image', label: 'Image',        plural: 'Images',   action: 'View image',  metric: 'Size' },
+      file:  { short: 'File',  label: 'File',         plural: 'Files',    action: 'Open file',   metric: 'Size' }
+    };
+
+    /* ==========================================================================
+       2. RENDERING (no need to edit below this line)
+       ========================================================================== */
+    const gallery = document.getElementById('gallery');
+    const filtersEl = document.getElementById('filters');
+    const countEl = document.getElementById('count');
+    let activeFilter = 'all';
+
+    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => (
+      { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+    ));
+
+    function metaRow(label, value) {
+      return `<div><dt>${esc(label)}</dt><dd>${esc(value)}</dd></div>`;
+    }
+
+    function cardHTML(item, index) {
+      const t = TYPES[item.type] || TYPES.file;
+      const isVideo = item.type === 'video';
+      const thumb = item.thumb || (isVideo ? `https://img.youtube.com/vi/${item.ytid}/hqdefault.jpg` : '');
+      const value = isVideo ? item.length : item.size;
+
+      let meta = metaRow('Type', item.format || t.label);
+      if (value) meta += metaRow(t.metric, value);
+      if (item.date) meta += metaRow('Date', item.date);
+      (item.extra || []).forEach(([k, v]) => { meta += metaRow(k, v); });
+
+      const inner = `
+        <div class="item-media">
+          ${thumb ? `<img src="${esc(thumb)}" alt="${esc(item.title)} thumbnail" loading="lazy" />` : ''}
+          <span class="chip">${esc(item.format || t.short)}</span>
+          ${isVideo ? '<span class="play" aria-hidden="true"></span>' : ''}
+        </div>
+        <div class="item-body">
+          <h3 class="item-title">${esc(item.title)}</h3>
+          ${item.desc ? `<p class="item-desc">${esc(item.desc)}</p>` : ''}
+          <dl class="meta">${meta}</dl>
+          <span class="item-action">${esc(t.action)}</span>
+        </div>`;
+
+      return isVideo
+        ? `<button class="item" type="button" data-index="${index}" aria-label="Play video: ${esc(item.title)}">${inner}</button>`
+        : `<a class="item" href="${esc(item.url)}" target="_blank" rel="noopener" aria-label="${esc(item.title)} (${esc(t.label)}, opens in a new tab)">${inner}</a>`;
+    }
+
+    function renderFilters() {
+      const present = Object.keys(TYPES).filter(k => ITEMS.some(i => i.type === k));
+      const buttons = [{ key: 'all', label: 'All' }, ...present.map(k => ({ key: k, label: TYPES[k].plural }))];
+      filtersEl.innerHTML = buttons.map(b =>
+        `<button class="filter" type="button" data-filter="${b.key}" aria-pressed="${b.key === activeFilter}">${esc(b.label)}</button>`
+      ).join('');
+    }
+
+    function renderGallery() {
+      const shown = ITEMS.map((item, index) => ({ item, index }))
+        .filter(({ item }) => activeFilter === 'all' || item.type === activeFilter);
+      gallery.innerHTML = shown.map(({ item, index }) => cardHTML(item, index)).join('');
+      countEl.textContent = `Showing ${shown.length} of ${ITEMS.length} items`;
+      filtersEl.querySelectorAll('.filter').forEach(b =>
+        b.setAttribute('aria-pressed', String(b.dataset.filter === activeFilter)));
+    }
+
+    filtersEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('.filter');
+      if (!btn) return;
+      activeFilter = btn.dataset.filter;
+      renderGallery();
+    });
+
+    // Hide a thumbnail that fails to load; the card keeps its placeholder background
+    gallery.addEventListener('error', (e) => {
+      if (e.target.tagName === 'IMG') e.target.style.visibility = 'hidden';
+    }, true);
+
+    /* ── Video modal ─────────────────────────────────────────────────────── */
+    const dlg = document.getElementById('videoModal');
+    const frame = document.getElementById('videoFrame');
+    const vTitle = document.getElementById('videoTitle');
+    const vSub = document.getElementById('videoSub');
+
+    gallery.addEventListener('click', (e) => {
+      const btn = e.target.closest('button.item');
+      if (!btn) return;
+      const item = ITEMS[Number(btn.dataset.index)];
+      vTitle.textContent = item.title;
+      vSub.textContent = item.length ? `Length: ${item.length}` : '';
+      frame.title = item.title;
+      frame.src = `https://www.youtube.com/embed/${encodeURIComponent(item.ytid)}?autoplay=1&rel=0`;
+      if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '');
+    });
+    function closeVideo() {
+      if (typeof dlg.close === 'function') dlg.close(); else dlg.removeAttribute('open');
+      frame.src = '';
+    }
+    dlg.addEventListener('close', () => { frame.src = ''; });      // also covers the Esc key
+    document.getElementById('videoClose').addEventListener('click', closeVideo);
+    dlg.addEventListener('click', (e) => { if (e.target === dlg) closeVideo(); });
+
+    /* ── Accent color cycling (matches main site) ────────────────────────── */
+    const root = document.documentElement;
+    const accentNameEl = document.getElementById('accentName');
+    const accents = [
+      { key: 'magenta', var: '--accent-magenta' },
+      { key: 'silver',  var: '--accent-silver'  },
+      { key: 'cyan',    var: '--accent-cyan'    }
+    ];
+    let accentIndex = 2; // start at cyan
+    function setAccent(index = accentIndex) {
+      const acc = accents[index];
+      root.style.setProperty('--accent-active', getComputedStyle(root).getPropertyValue(acc.var).trim());
+      accentNameEl.textContent = acc.key;
+    }
+    document.getElementById('toggleAccent').addEventListener('click', () => {
+      accentIndex = (accentIndex + 1) % accents.length;
+      setAccent(accentIndex);
+    });
+
+    /* ── Bokeh background ────────────────────────────────────────────────────
+       Soft orange and blue discs fade in and out at random spots and drift
+       slowly. One canvas, ~30 fps, pauses when the tab is hidden, and shows a
+       static version when the visitor prefers reduced motion.
+       Tuning: COUNT_*, LIFE_*, PEAK_* (brightness), and PALETTE below.
+    --------------------------------------------------------------------------- */
+    (function initBokeh() {
+      const canvas = document.getElementById('bokeh');
+      if (!canvas || !canvas.getContext) return;
+      const ctx = canvas.getContext('2d');
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+      const COUNT_DESKTOP = 16, COUNT_MOBILE = 9;
+      const LIFE_MIN = 7000, LIFE_MAX = 13000;
+      const PEAK_MIN = 0.16, PEAK_MAX = 0.34;
+      const PALETTE = [
+        '#ff9a3c', '#ffb35c', '#ff7a1f', '#ffc27a',   // oranges
+        '#4aa8ff', '#6cc4ff', '#3d86ff', '#8fd3ff'    // blues
+      ].map(hexToRgb);
+
+      let w = 0, h = 0, dpr = 1, orbs = [], raf = 0, last = 0;
+
+      function hexToRgb(hex) {
+        const n = parseInt(hex.slice(1), 16);
+        return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+      }
+      const rand = (a, b) => a + Math.random() * (b - a);
+
+      function spawn(now, initial) {
+        const base = Math.min(w, h);
+        const life = rand(LIFE_MIN, LIFE_MAX);
+        return {
+          x: rand(0, w), y: rand(0, h),
+          r: Math.min(150, rand(base * 0.05, base * 0.17)),
+          vx: rand(-6, 6), vy: rand(-6, 6),
+          rgb: PALETTE[(Math.random() * PALETTE.length) | 0],
+          peak: rand(PEAK_MIN, PEAK_MAX),
+          life,
+          start: initial ? now - rand(0, life) : now + rand(0, 2500)
+        };
+      }
+      function drawOrb(o, a) {
+        const [r, g, b] = o.rgb;
+        const grad = ctx.createRadialGradient(o.x, o.y, 0, o.x, o.y, o.r);
+        grad.addColorStop(0,   `rgba(${r},${g},${b},${a * 0.55})`);
+        grad.addColorStop(0.7, `rgba(${r},${g},${b},${a * 0.7})`);
+        grad.addColorStop(0.9, `rgba(${r},${g},${b},${a})`);
+        grad.addColorStop(1,   `rgba(${r},${g},${b},0)`);
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(o.x, o.y, o.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      function drawStatic() {
+        ctx.clearRect(0, 0, w, h);
+        orbs.forEach(o => drawOrb(o, o.peak * 0.6));
+      }
+      function frame(now) {
+        raf = requestAnimationFrame(frame);
+        if (now - last < 33) return;
+        const dt = Math.min((now - last) / 1000, 0.1);
+        last = now;
+        ctx.clearRect(0, 0, w, h);
+        for (let i = 0; i < orbs.length; i++) {
+          const o = orbs[i];
+          const t = (now - o.start) / o.life;
+          if (t < 0) continue;
+          if (t >= 1) { orbs[i] = spawn(now, false); continue; }
+          o.x += o.vx * dt; o.y += o.vy * dt;
+          drawOrb(o, o.peak * Math.pow(Math.sin(Math.PI * t), 2));
+        }
+      }
+      function start() {
+        cancelAnimationFrame(raf);
+        if (reduceMotion.matches) { drawStatic(); return; }
+        last = 0;
+        raf = requestAnimationFrame(frame);
+      }
+      function resize() {
+        dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+        w = window.innerWidth; h = window.innerHeight;
+        canvas.width = Math.round(w * dpr);
+        canvas.height = Math.round(h * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const count = w < 700 ? COUNT_MOBILE : COUNT_DESKTOP;
+        const now = performance.now();
+        while (orbs.length < count) orbs.push(spawn(now, true));
+        orbs.length = count;
+        if (reduceMotion.matches) drawStatic();
+      }
+      let resizeTimer;
+      window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(resize, 150); });
+      reduceMotion.addEventListener?.('change', start);
+      resize();
+      start();
+    })();
+
+    /* ── Init ────────────────────────────────────────────────────────────── */
+    document.getElementById('year').textContent = new Date().getFullYear();
+    renderFilters();
+    renderGallery();
+    setAccent(accentIndex);
+  </script>
+</body>
+</html>
