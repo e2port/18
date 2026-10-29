@@ -7,11 +7,17 @@
   <meta name="description" content="Data science and machine learning projects: reports, web apps, and video tutorials." />
   <meta name="theme-color" content="#51414F" />
   <link rel="icon" href="/18/img/e2v3.png" type="image/x-icon" sizes="any" />
+
   <!-- Typeface: Plus Jakarta Sans (falls back to the system font if it cannot load) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
+  <!--
+  • To add, edit, or remove an item: scroll to the ITEMS list in the script at the bottom
+    of this file. Each item is one block; copy an existing one and change the values.
+    The cards, filter buttons, and item count update automatically.
+  -->
   <style>
     /* =========================
        THEME VARIABLES (shared with the main site)
@@ -348,8 +354,11 @@
                              thumbnail automatically if you leave this out.
          size    (pdf, app, image, file)  e.g. '1.99 MB'
          length  (video)  e.g. '12:34'
+         date    (optional)  e.g. 'October 2025'
          format  (optional)  Overrides the type label, e.g. 'ZIP archive'
-         desc    (optional)  One short sentence under the title
+         desc    (optional)  One short sentence under the title.
+                     Tip: if the text contains an apostrophe, wrap it in double
+                     quotes, e.g. desc: "Don't miss this", or write it as \'
          extra   (optional)  More details as pairs, e.g. [['Updated', 'Oct 2026']]
 
        Example:
@@ -404,14 +413,14 @@
       { type: 'video',
         title: 'Data Science with No Internet, Part 1',
         ytid: '0-AcN7SeNV8',
-        length: '01:32' ,
-        desc: 'Older video and less relevant due to changes in softwares and new EULA's' },                                   // add length, e.g. '12:34'
+        length: '01:32',
+        desc: 'Older video, and less relevant now due to software changes and new EULAs.' },
 
       { type: 'video',
         title: 'Data Science with No Internet, Part 2',
         ytid: 'D5nxwEmEOYU',
-        length: '05:47' ,
-        desc: 'Older video and less relevant due to changes in softwares and new EULA's' },   
+        length: '05:47',
+        desc: 'Older video, and less relevant now due to software changes and new EULAs.' }
     ];
 
     /* Type settings: labels and button text for each kind of item.
@@ -448,6 +457,7 @@
 
       let meta = metaRow('Type', item.format || t.label);
       if (value) meta += metaRow(t.metric, value);
+      if (item.date) meta += metaRow('Date', item.date);
       (item.extra || []).forEach(([k, v]) => { meta += metaRow(k, v); });
 
       const inner = `
