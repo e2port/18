@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Palette chooser for seaborn and matplotlib</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#edeff3;--panel:#fff;--ink:#17202e;--muted:#5b6676;--line:#d9dde4;--sel:#e4e9f5;--focus:#2f5bea;--code:#f5f6f9;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f131a;--panel:#181d27;--ink:#e7eaf0;--muted:#9aa4b5;--line:#2a3242;--sel:#242c3e;--focus:#7c9bff;--code:#121620;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f131a;--panel:#181d27;--ink:#e7eaf0;--muted:#9aa4b5;--line:#2a3242;--sel:#242c3e;--focus:#7c9bff;--code:#121620;color-scheme:dark}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 "IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.app{display:grid;grid-template-columns:290px minmax(0,1fr);gap:20px;max-width:1280px;margin:0 auto;padding:20px}
+aside{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px 14px;align-self:start;position:sticky;top:20px;max-height:calc(100vh - 40px);overflow-y:auto}
+aside h1{font-size:1.25rem;font-weight:600;padding:0 8px;letter-spacing:-.01em}
+aside .sub{color:var(--muted);font-size:.875rem;padding:4px 8px 14px}
+aside h2{font-size:.8125rem;font-weight:600;color:var(--muted);padding:14px 8px 6px}
+.item{display:block;width:100%;text-align:left;background:none;border:1px solid transparent;border-radius:8px;padding:8px;cursor:pointer;transition:background .15s}
+.item:hover{background:var(--sel)}
+.item[aria-pressed="true"]{background:var(--sel);border-color:var(--line)}
+.item b{font-weight:500;display:block;margin-bottom:5px}
+.strip{display:block;height:10px;border-radius:5px}
+main{display:flex;flex-direction:column;gap:16px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px}
+.hero{padding:0;overflow:hidden}
+.hero .bar{height:14px}
+.hero .in{padding:16px 18px 18px}
+.hero h2{font-size:1.5rem;font-weight:600;letter-spacing:-.015em}
+.hero p{color:var(--muted);max-width:62ch}
+.controls{display:flex;flex-wrap:wrap;gap:18px 26px;align-items:center;margin-top:16px;font-size:.9rem}
+.controls label{display:flex;align-items:center;gap:8px}
+.controls output{font-family:"IBM Plex Mono",ui-monospace,monospace;min-width:2ch}
+.controls select{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:4px 8px}
+input[type=range]{accent-color:var(--focus);width:130px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.seg button{background:none;border:0;padding:4px 12px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+.charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+figure{border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+figcaption{font-size:.8125rem;padding:6px 12px;background:var(--panel);color:var(--muted);border-top:1px solid var(--line)}
+figure svg{display:block;width:100%;height:auto}
+.swatches{display:flex;flex-wrap:wrap;gap:10px}
+.sw{border:1px solid var(--line);border-radius:10px;background:var(--panel);cursor:pointer;overflow:hidden;width:96px;text-align:left;padding:0}
+.sw i{display:block;height:54px}
+.sw span{display:block;padding:5px 8px;font:500 .8rem "IBM Plex Mono",ui-monospace,monospace}
+.sw:hover{border-color:var(--muted)}
+.hint{color:var(--muted);font-size:.85rem;margin-bottom:10px}
+.tabs{display:flex;gap:6px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.tabs .t{background:none;border:1px solid var(--line);border-radius:7px;padding:4px 12px;cursor:pointer}
+.tabs .t[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.tabs .copy{margin-left:auto;background:var(--focus);color:#fff;border:0;border-radius:7px;padding:5px 14px;cursor:pointer;font-weight:500}
+pre{background:var(--code);border:1px solid var(--line);border-radius:8px;padding:14px;overflow-x:auto;font:.85rem/1.55 "IBM Plex Mono",ui-monospace,monospace}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--panel);padding:8px 16px;border-radius:8px;font-size:.875rem;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.on{opacity:1}
+@media (max-width:860px){
+ .app{grid-template-columns:1fr;padding:12px}
+ aside{position:static;max-height:none;padding:14px 10px}
+ .list{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px}
+ .list .item{width:150px;flex:none;border-color:var(--line)}
+ aside h2{padding-top:8px}
+ .charts{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+ <aside aria-label="Palettes">
+  <h1>Palette chooser</h1>
+  <p class="sub">Preview color schemes on real chart types, then copy the Python.</p>
+  <div id="nav"></div>
+ </aside>
+ <main>
+  <section class="card hero" aria-live="polite">
+   <div class="bar" id="bar"></div>
+   <div class="in">
+    <h2 id="pname"></h2>
+    <p id="pdesc"></p>
+    <div class="controls">
+     <label>Colors <input type="range" id="n" min="3" max="10" value="6"> <output id="nout">6</output></label>
+     <label><input type="checkbox" id="rev"> Reverse</label>
+     <span class="seg" role="group" aria-label="Chart background"><button type="button" data-bg="light" aria-pressed="true">Light</button><button type="button" data-bg="dark" aria-pressed="false">Dark</button></span>
+     <label>Vision
+      <select id="vis"><option value="none">Typical</option><option value="deut">Deuteranopia</option><option value="prot">Protanopia</option><option value="trit">Tritanopia</option></select>
+     </label>
+    </div>
+   </div>
+  </section>
+  <section class="charts" id="charts" aria-label="Chart previews"></section>
+  <section class="card">
+   <p class="hint">Select a swatch to copy its hex value.</p>
+   <div class="swatches" id="sw"></div>
+  </section>
+  <section class="card">
+   <div class="tabs" id="tabs">
+    <button type="button" class="t" data-tab="sns" aria-pressed="true">Seaborn</button>
+    <button type="button" class="t" data-tab="mpl" aria-pressed="false">Matplotlib</button>
+    <button type="button" class="t" data-tab="hex" aria-pressed="false">Hex values</button>
+    <button type="button" class="copy" id="copy">Copy code</button>
+   </div>
+   <pre><code id="code"></code></pre>
+  </section>
+ </main>
+</div>
+<div id="toast" role="status"></div>
+<script>
+"use strict";
+const P=[
+{id:"viridis",name:"Viridis",kind:"sequential",sns:"viridis",d:"Perceptually uniform and readable in grayscale. The safe default for continuous data.",c:["#440154","#3b528b","#21918c","#5ec962","#fde725"]},
+{id:"plasma",name:"Plasma",kind:"sequential",sns:"plasma",d:"Uniform purple to yellow with high contrast across the whole range.",c:["#0d0887","#7e03a8","#cc4778","#f89540","#f0f921"]},
+{id:"inferno",name:"Inferno",kind:"sequential",sns:"inferno",d:"Black through red to pale yellow. Strong on dark backgrounds.",c:["#000004","#420a68","#932667","#dd513a","#fca50a","#fcffa4"]},
+{id:"magma",name:"Magma",kind:"sequential",sns:"magma",d:"Softer than Inferno, ending in a cream highlight.",c:["#000004","#3b0f70","#8c2981","#de4968","#fe9f6d","#fcfdbf"]},
+{id:"cividis",name:"Cividis",kind:"sequential",sns:"cividis",d:"Designed for color-vision deficiency. Blue to yellow, nearly identical for all viewers.",c:["#00204d","#31446b","#666970","#958f78","#cbba69","#ffea46"]},
+{id:"deep",name:"Deep",kind:"qualitative",sns:"deep",d:"The seaborn default for categories. Saturated but calm.",c:["#4c72b0","#dd8452","#55a868","#c44e52","#8172b3","#937860","#da8bc3","#8c8c8c","#ccb974","#64b5cd"]},
+{id:"pastel",name:"Pastel",kind:"qualitative",sns:"pastel",d:"Light tints for filled areas and large bars. Weak for thin lines on white.",c:["#a1c9f4","#ffb482","#8de5a1","#ff9f9b","#d0bbff","#debb9b","#fab0e4","#cfcfcf","#fffea3","#b9f2f0"]},
+{id:"colorblind",name:"Colorblind",kind:"qualitative",sns:"colorblind",d:"Categorical colors chosen to stay distinguishable with common color-vision deficiencies.",c:["#0173b2","#de8f05","#029e73","#d55e00","#cc78bc","#ca9161","#fbafe4","#949494","#ece133","#56b4e9"]},
+{id:"set2",name:"Set2",kind:"qualitative",sns:"Set2",d:"A matplotlib qualitative set with muted, even-weight hues.",c:["#66c2a5","#fc8d62","#8da0cb","#e78ac3","#a6d854","#ffd92f","#e5c494","#b3b3b3"]},
+{id:"coolwarm",name:"Coolwarm",kind:"diverging",sns:"coolwarm",d:"Blue to red around a neutral midpoint. Use it when values split around zero.",c:["#3b4cc0","#8db0fe","#dddddd","#f49a7b","#b40426"]},
+{id:"spectrum",name:"Deep spectrum",kind:"custom",d:"Custom ramp from teal blue through purple and coral to amber.",c:["#003f5c","#58508d","#bc5090","#ff6361","#ffa600"]},
+{id:"cool",name:"Cool",kind:"custom",d:"Custom blues, from sky to royal.",c:["#00bfff","#1e90ff","#4169e1","#6495ed"]},
+{id:"warm",name:"Warm",kind:"custom",d:"Custom reds to golds.",c:["#ff4500","#ff8c00","#ffa500","#ffd700"]}
+];
+const GROUPS=[["Sequential","sequential"],["Categorical","qualitative"],["Diverging","diverging"],["Custom","custom"]];
+const CVD={deut:[[.625,.375,0],[.7,.3,0],[0,.3,.7]],prot:[[.567,.433,0],[.558,.442,0],[0,.242,.758]],trit:[[.95,.05,0],[0,.433,.567],[0,.475,.525]]};
+const CH={light:{bg:"#ffffff",fg:"#3a3f4a",grid:"#e6e8ed"},dark:{bg:"#1b1f29",fg:"#d4d8e1",grid:"#333947"}};
+const S={id:"viridis",n:6,rev:false,vis:"none",bg:"light",tab:"sns"};
+const $=id=>document.getElementById(id);
+const get=()=>P.find(p=>p.id===S.id);
+const rgb=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+const hex=a=>"#"+a.map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,"0")).join("");
+function at(stops,t){const k=stops.length-1,x=Math.max(0,Math.min(1,t))*k,i=Math.min(Math.floor(x),k-1),f=x-i,a=rgb(stops[i]),b=rgb(stops[i+1]);return hex(a.map((v,j)=>v+(b[j]-v)*f))}
+function colors(p,n,rev){
+ if(p.kind==="qualitative")return p.c.slice(0,n);
+ const s=rev?[...p.c].reverse():p.c;
+ return Array.from({length:n},(_,i)=>at(s,n===1?0:i/(n-1)));
+}
+const sim=h=>{if(S.vis==="none")return h;const m=CVD[S.vis],c=rgb(h);return hex(m.map(r=>r[0]*c[0]+r[1]*c[1]+r[2]*c[2]))};
+function strip(p){
+ if(p.kind==="qualitative"){const n=p.c.length;return"linear-gradient(90deg,"+p.c.map((c,i)=>`${c} ${i*100/n}% ${(i+1)*100/n}%`).join(",")+")"}
+ return"linear-gradient(90deg,"+p.c.join(",")+")";
+}
+function rng(s){return()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+
+/* ---------- charts ---------- */
+const W=320,H=220,M={l:30,r:12,t:12,b:24};
+function frame(T){
+ let g=`<rect width="${W}" height="${H}" fill="${T.bg}"/>`;
+ for(let i=0;i<=4;i++){const y=M.t+(H-M.t-M.b)*i/4;g+=`<line x1="${M.l}" x2="${W-M.r}" y1="${y}" y2="${y}" stroke="${T.grid}"/>`}
+ return g+`<line x1="${M.l}" x2="${M.l}" y1="${M.t}" y2="${H-M.b}" stroke="${T.fg}" opacity=".5"/><line x1="${M.l}" x2="${W-M.r}" y1="${H-M.b}" y2="${H-M.b}" stroke="${T.fg}" opacity=".5"/>`;
+}
+const sx=(v,a,b)=>M.l+(W-M.l-M.r)*(v-a)/(b-a), sy=(v,a,b)=>H-M.b-(H-M.t-M.b)*(v-a)/(b-a);
+function line(cs,T){
+ const k=Math.min(cs.length,8),r=rng(3);let all=[];
+ for(let s=0;s<k;s++){const a=.8+r()*.8,p=r()*6,row=[];for(let i=0;i<24;i++)row.push(s*.9+a*Math.sin(i*.3+p)+r()*.3);all.push(row)}
+ const lo=Math.min(...all.flat()),hi=Math.max(...all.flat());
+ return frame(T)+all.map((row,s)=>`<polyline fill="none" stroke="${sim(cs[s])}" stroke-width="2" stroke-linejoin="round" points="${row.map((v,i)=>sx(i,0,23).toFixed(1)+","+sy(v,lo,hi).toFixed(1)).join(" ")}"/>`).join("");
+}
+function bars(cs,T){
+ const k=Math.min(cs.length,5),r=rng(11),gw=(W-M.l-M.r)/4,bw=(gw-14)/k;let g=frame(T);
+ for(let a=0;a<4;a++)for(let s=0;s<k;s++){const v=.25+r()*.7,h=(H-M.t-M.b)*v;g+=`<rect x="${(M.l+a*gw+7+s*bw).toFixed(1)}" y="${(H-M.b-h).toFixed(1)}" width="${(bw-1.5).toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${sim(cs[s])}"/>`}
+ return g;
+}
+function scatter(cs,T){
+ const k=Math.min(cs.length,6),r=rng(5),g=()=>(r()+r()+r()-1.5)/1.5;let out=frame(T);
+ for(let s=0;s<k;s++){const cx=.5+.32*Math.cos(s*6.283/k),cy=.5+.32*Math.sin(s*6.283/k);
+  for(let i=0;i<22;i++)out+=`<circle cx="${sx(cx+g()*.12,0,1).toFixed(1)}" cy="${sy(cy+g()*.14,0,1).toFixed(1)}" r="3.4" fill="${sim(cs[s])}" fill-opacity=".85"/>`}
+ return out;
+}
+function heat(p,T){
+ const q=p.kind==="qualitative",ramp=q?colors(p,S.n,false):colors(p,48,S.rev),cx=14,cy=9,w=(W-M.l-M.r)/cx,h=(H-M.t-M.b)/cy;let o=`<rect width="${W}" height="${H}" fill="${T.bg}"/>`;
+ for(let y=0;y<cy;y++)for(let x=0;x<cx;x++){
+  const v=Math.max(0,Math.min(.999,.5+.28*Math.sin(x*.55)+.22*Math.cos(y*.7+x*.2)));
+  o+=`<rect x="${(M.l+x*w).toFixed(1)}" y="${(M.t+y*h).toFixed(1)}" width="${(w+.4).toFixed(1)}" height="${(h+.4).toFixed(1)}" fill="${sim(ramp[Math.floor(v*ramp.length)])}"/>`}
+ return o;
+}
+function figure(cap,inner,T){return`<figure><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${cap} chart preview">${inner}</svg><figcaption>${cap}</figcaption></figure>`}
+
+/* ---------- code output ---------- */
+function code(p,cs){
+ const n=S.n,cmap=p.sns&&p.kind!=="qualitative"?p.sns+(S.rev?"_r":""):null;
+ const list="["+cs.map(c=>`"${c}"`).join(", ")+"]";
+ if(S.tab==="hex")return (cmap?`# Sampled from key stops of ${p.name}. Use the colormap for exact values.\n`:"")+`palette = ${list}`;
+ if(S.tab==="mpl"){
+  const head="import numpy as np\nimport matplotlib.pyplot as plt\n\n";
+  const pick=cmap?`colors = plt.get_cmap("${cmap}")(np.linspace(0, 1, ${n}))`:`colors = ${list}`;
+  return head+pick+`\nplt.rcParams["axes.prop_cycle"] = plt.cycler(color=colors)\n\nx = np.arange(10)\nfor i in range(${n}):\n    plt.plot(x, x * (i + 1) * 0.2, label=f"series {i + 1}")\nplt.legend()\nplt.show()`;
+ }
+ const pal=p.sns&&!(S.rev&&p.kind==="qualitative")?`sns.color_palette("${p.sns+(S.rev&&p.kind!=="qualitative"?"_r":"")}", n_colors=${n})`:list;
+ return `import seaborn as sns\nimport matplotlib.pyplot as plt\n\npalette = ${pal}\nsns.set_palette(palette)\n\nsns.lineplot(x=[1, 2, 3], y=[4, 5, 3])\nplt.show()`;
+}
+
+/* ---------- render ---------- */
+function render(){
+ const p=get(),q=p.kind==="qualitative",max=q?p.c.length:10;
+ S.n=Math.min(S.n,max);
+ const nIn=$("n");nIn.max=max;nIn.value=S.n;$("nout").textContent=S.n;
+ $("rev").disabled=q;if(q)$("rev").checked=false,S.rev=false;
+ const cs=colors(p,S.n,S.rev),T=CH[S.bg];
+ $("bar").style.background=q?`linear-gradient(90deg,${cs.map((c,i)=>`${sim(c)} ${i*100/cs.length}% ${(i+1)*100/cs.length}%`).join(",")})`:`linear-gradient(90deg,${colors(p,24,S.rev).map(sim).join(",")})`;
+ $("pname").textContent=p.name;$("pdesc").textContent=p.d;
+ $("charts").innerHTML=figure("Line",line(cs,T))+figure("Bar",bars(cs,T))+figure("Scatter",scatter(cs,T))+figure("Heatmap",heat(p,T));
+ $("sw").innerHTML=cs.map(c=>`<button type="button" class="sw" data-hex="${c}" aria-label="Copy ${c}"><i style="background:${sim(c)}"></i><span>${c}</span></button>`).join("");
+ $("code").textContent=code(p,cs);
+ document.querySelectorAll(".item").forEach(b=>b.setAttribute("aria-pressed",b.dataset.id===S.id));
+ document.querySelectorAll("[data-tab]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.tab===S.tab));
+ document.querySelectorAll("[data-bg]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.bg===S.bg));
+}
+function build(){
+ $("nav").innerHTML=GROUPS.map(([t,k])=>`<h2>${t}</h2><div class="list">`+P.filter(p=>p.kind===k).map(p=>`<button type="button" class="item" data-id="${p.id}" aria-pressed="false"><b>${p.name}</b><span class="strip" style="background:${strip(p)}"></span></button>`).join("")+"</div>").join("");
+}
+let tt;function toast(m){const t=$("toast");t.textContent=m;t.classList.add("on");clearTimeout(tt);tt=setTimeout(()=>t.classList.remove("on"),1600)}
+async function copy(text,msg){
+ try{await navigator.clipboard.writeText(text)}catch(e){const a=document.createElement("textarea");a.value=text;document.body.appendChild(a);a.select();try{document.execCommand("copy")}catch(_){}a.remove()}
+ toast(msg);
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click",e=>{
+ const i=e.target.closest(".item"),t=e.target.closest("[data-tab]"),b=e.target.closest("[data-bg]"),s=e.target.closest(".sw");
+ if(i){S.id=i.dataset.id;render()}
+ else if(t){S.tab=t.dataset.tab;render()}
+ else if(b){S.bg=b.dataset.bg;render()}
+ else if(s)copy(s.dataset.hex,"Copied "+s.dataset.hex);
+ else if(e.target.id==="copy")copy($("code").textContent,"Code copied");
+});
+$("n").addEventListener("input",e=>{S.n=+e.target.value;render()});
+$("rev").addEventListener("change",e=>{S.rev=e.target.checked;render()});
+$("vis").addEventListener("change",e=>{S.vis=e.target.value;render()});
+build();render();
+</script>
+</body>
+</html>
