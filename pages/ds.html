@@ -185,12 +185,12 @@
       border-color: color-mix(in srgb, var(--accent-active) 55%, rgba(255,255,255,0.2));
     }
     .item-media {
-      position: relative; aspect-ratio: 4 / 3; width: 100%;
+      position: relative; aspect-ratio: 16 / 9; width: 100%;
       background: linear-gradient(135deg, #2a2338, #181321);
       border-bottom: 1px solid rgba(255,255,255,0.11);
       overflow: hidden;
     }
-    .item-media img { width: 100%; height: 100%; object-fit: cover; }
+    .item-media img { width: 100%; height: 100%; object-fit: contain; object-position: center; }
     .chip {
       position: absolute; top: 10px; left: 10px;
       padding: 4px 10px; border-radius: 999px;
