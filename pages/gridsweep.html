@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gridiron Sweeper v3</title>
+<style>
+:root{--bg:#14181a;--panel:#1d2427;--line:#3a4549;--ink:#e9ece8;--mut:#929c9a;--acc:#c9a64b;--hid:#66727a;--hid2:#7a878f;--open:#e4e6e0;--clue:#252d31;--bad:#b8472f;--wall:#c9a64b;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,Segoe UI,Arial,sans-serif;display:flex;flex-direction:column;align-items:center;padding:12px}
+h1{margin:2px 0 10px;font-size:18px;letter-spacing:3px;text-transform:uppercase;color:var(--mut)}
+.top{display:flex;gap:8px;width:100%;max-width:580px}
+.st{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;flex:1}
+.st div,.dwn{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px;text-align:center}
+.st b{display:block;font-size:17px}.st span,.dwn span{font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:1px}
+.dwn{min-width:112px}.dwn b{display:block;font-size:13px;color:var(--acc)}
+#fb{font-size:14px;margin:2px 0}#fb i{font-style:normal}#fb i.x{filter:grayscale(1);opacity:.2}
+.field{position:relative;width:100%;max-width:580px;height:26px;margin:10px 0 6px;border-radius:4px;background:repeating-linear-gradient(90deg,#34443a 0 10%,#3b4d42 10% 20%);border:1px solid var(--line)}
+#ball{position:absolute;top:3px;font-size:16px;transform:translateX(-50%);transition:left .5s}
+#status{font-size:14px;color:var(--mut);text-align:center;min-height:20px}
+#task{font-size:14px;text-align:center;min-height:20px;margin-bottom:4px}
+#board{display:grid;gap:2px;margin:6px 0;padding:4px;background:var(--panel);border-radius:4px;touch-action:manipulation;user-select:none}
+#board.O{border-top:6px solid var(--wall)}#board.D{border-bottom:6px solid var(--wall)}
+.c{width:var(--s);height:var(--s);border-radius:3px;background:var(--hid);border:0;color:#111;font:700 calc(var(--s)*.55)/1 system-ui;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.c:hover{background:var(--hid2)}
+.c.o{background:var(--open);cursor:default}
+.c.k{background:var(--clue);cursor:default}
+.c.x{background:var(--bad);color:#fff}
+.n1{color:#1f56b8}.n2{color:#1d6b2c}.n3{color:#b3281c}.n4{color:#5a1fa0}.n5,.n6,.n7,.n8{color:#7a3300}
+.k.n1{color:#7db4ff}.k.n2{color:#7fd691}.k.n3{color:#ff9488}.k.n4{color:#cfa8ff}.k.n5,.k.n6,.k.n7,.k.n8{color:#ffc088}
+.row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+button.b{background:var(--panel);color:var(--ink);border:1px solid var(--mut);border-radius:6px;padding:8px 14px;font-size:14px;cursor:pointer}
+button.b.on{background:var(--acc);color:#111;border-color:var(--acc)}
+#log{max-width:580px;font-size:13px;color:var(--mut);text-align:center;margin-top:8px;min-height:36px}
+details{max-width:580px;font-size:13px;color:var(--mut);margin-top:8px;line-height:1.5}
+#ov{position:fixed;inset:0;background:rgba(10,12,13,.88);display:none;align-items:center;justify-content:center;z-index:9;padding:20px}
+.card{background:var(--panel);border:2px solid var(--line);border-radius:10px;padding:26px 22px;max-width:420px;text-align:center}
+.card h2{margin:0 0 8px;font-size:30px;letter-spacing:2px;text-transform:uppercase}
+.card p{color:var(--mut);margin:0 0 18px;line-height:1.5}
+.card.td{border-color:var(--acc)}.card.td h2{color:var(--acc);font-size:44px}.card.bad{border-color:var(--bad)}.card.bad h2{color:#e0715a}
+</style></head><body>
+<h1>Gridiron Sweeper</h1>
+<div class="top"><div class="st"><div><b id="sc">0 – 0</b><span>You – Opp</span></div><div><b id="qt">Q1</b><span>Drive</span></div><div><b id="pz">1/8</b><span>Puzzle</span></div></div>
+<div class="dwn"><span>Downs</span><div id="fb"></div><b id="yd"></b></div></div>
+<div class="field"><div id="ball">🏈</div></div>
+<div id="status"></div><div id="task"></div>
+<div id="board"></div>
+<div class="row"><button class="b" id="fl">🚩 Flag mode</button><button class="b" id="nw">New game</button></div>
+<div id="log"></div>
+<details><summary>Rules &amp; pattern hints</summary>
+Every drive starts at the 30 and runs through 8 puzzles, 18 tiles wide. The deeper you get on the field, the more rows each puzzle has (1 up to 6).<br>
+<b>Offense:</b> the wall is at the top, so numbers only sit below the puzzle. No flags. Clear every safe tile. Each mine you open costs a down (4 footballs per drive). Clear all 8 for a touchdown (+7). Lose all 4 and it’s a turnover on downs.<br>
+<b>Defense:</b> the wall is at the bottom, so numbers sit above the puzzle. Flags and clearing both work, and you finish a puzzle by clearing every safe tile or flagging every mine. Each mine you open lets the opponent break through 17.5 yards, so 4 mistakes is an opponent touchdown. Clear all 8 for a defensive stand.<br>
+One offensive and one defensive drive per quarter.<br><br>
+<b>1-2-1:</b> mines under the 1s, safe under the 2. <b>1-2-2-1:</b> mines under the 2s, safe under the 1s. <b>1-2-X:</b> the X is a mine. <b>1-1-X</b> from a border: the X is safe. Subtract known mines from numbers, then look for the pattern again.</details>
+<div id="ov"><div class="card" id="cd"><h2 id="ot"></h2><p id="os"></p><button class="b" id="ob">Continue</button></div></div>
+<script>
+const $=id=>document.getElementById(id),W=18,rnd=n=>Math.random()*n|0,Y=p=>Math.round(30+p*70/8),ROWS=p=>1+Math.floor((Y(p)-30)/12);
+let G,B;
+const nbs=(i,R)=>{const r=i/W|0,c=i%W,o=[];for(let a=-1;a<2;a++)for(let b=-1;b<2;b++){const y=r+a,x=c+b;if((a||b)&&y>=0&&y<R&&x>=0&&x<W)o.push(y*W+x)}return o};
+const flood=(i,cnt,rev,R,mine)=>{const st=[i];while(st.length){const k=st.pop();if(rev.has(k)||mine[k])continue;rev.add(k);if(!cnt[k])nbs(k,R).forEach(n=>st.push(n))}};
+function solve(R,cnt,r0,mine){const rev=new Set(r0),known=new Set();let p=1;
+ while(p){p=0;const cons=[];
+  for(const i of rev){const nn=nbs(i,R),u=nn.filter(n=>!rev.has(n)&&!known.has(n));if(u.length)cons.push({u,m:cnt[i]-nn.filter(n=>known.has(n)).length})}
+  const safe=new Set(),mn=new Set(),ap=(c,m)=>{if(m==0)c.forEach(x=>safe.add(x));else if(m==c.length)c.forEach(x=>mn.add(x))};
+  cons.forEach(c=>ap(c.u,c.m));
+  for(const a of cons)for(const b of cons)if(a.u.length<b.u.length&&b.u.includes(a.u[0])&&a.u.every(x=>b.u.includes(x)))ap(b.u.filter(x=>!a.u.includes(x)),b.m-a.m);
+  safe.forEach(s=>{if(!rev.has(s)){flood(s,cnt,rev,R,mine);p=1}});
+  mn.forEach(m=>{if(!known.has(m)){known.add(m);p=1}})}
+ return rev}
+function genMines(R,cr){const m=Array(R*W).fill(0),T=[[1],[1,1],[1,0,1],[1,1,0,1],[1,0,1,1]];
+ for(let r=0;r<R;r++){if(r==cr)continue;const far=Math.abs(r-cr)>1;let c=rnd(3);
+  while(c<W){const t=T[rnd(5)];if(!(far&&rnd(100)<30))t.forEach((v,j)=>{if(c+j<W&&v)m[r*W+c+j]=1});c+=t.length+2+rnd(4)}}
+ return m}
+function makeBoard(side,p){const N=ROWS(p),R=N+1,cr=side=='O'?N:0,mine=genMines(R,cr),cnt=mine.map((_,i)=>nbs(i,R).reduce((s,k)=>s+mine[k],0)),rev=new Set();
+ for(let c=0;c<W;c++)flood(cr*W+c,cnt,rev,R,mine);
+ for(let g=0;g<120;g++){const s=solve(R,cnt,rev,mine),left=[];for(let i=0;i<R*W;i++)if((i/W|0)!=cr&&!mine[i]&&!s.has(i))left.push(i);if(!left.length)break;for(let k=0;k<(left.length>14?3:1);k++)flood(left[rnd(left.length)],cnt,rev,R,mine)}
+ return{R,N,cr,mine,cnt,rev,flag:new Set(),boom:new Set(),over:false}}
+function ov(t,s,cb,cls,btn){$('ot').textContent=t;$('os').textContent=s;$('cd').className='card '+(cls||'');$('ob').textContent=btn||'Continue';$('ov').style.display='flex';$('ob').onclick=()=>{$('ov').style.display='none';cb()}}
+function newGame(){G={me:0,opp:0,ph:0};startDrive()}
+function startDrive(){const O=G.ph%2==0;G.side=O?'O':'D';G.p=0;G.lives=4;G.fm=false;hud();
+ ov(`Q${(G.ph>>1)+1} · ${O?'Offense':'Defense'}`,O?'Start at your 30 and solve 8 puzzles to score. No flags. Each mine you open costs a down (4 footballs).':'The opponent starts at their 30. Flags and clearing both work. Each mine you open lets them break through.',nextPuzzle)}
+function nextPuzzle(){G.fm=false;B=makeBoard(G.side,G.p);render();hud()}
+function hud(){const O=G.side=='O',Yd=O?Y(G.p):Math.round(30+17.5*(4-G.lives)),pos=O?Yd:100-Yd;
+ $('sc').textContent=G.me+' – '+G.opp;$('qt').textContent='Q'+((G.ph>>1)+1)+' '+(O?'OFF':'DEF');$('pz').textContent=Math.min(G.p+1,8)+'/8';
+ $('fb').innerHTML=[0,1,2,3].map(i=>`<i class="${i<G.lives?'':'x'}">🏈</i>`).join('');
+ $('yd').textContent=(O?(Yd<=50?'OWN ':'OPP '):(Yd<=50?'THEIR ':'OUR '))+(Yd<=50?Yd:100-Yd);
+ $('ball').style.left=pos+'%';
+ $('status').textContent=O?'Your offense, driving right':'Opponent offense, driving left';
+ $('task').textContent=O?'Clear every safe tile. No flags.':'Clear every safe tile or flag every mine.';
+ $('fl').style.display=O?'none':'';$('fl').classList.toggle('on',!!G.fm)}
+function render(){const el=$('board'),s=Math.max(14,Math.min(30,Math.floor((Math.min(innerWidth,580)-34)/W)-2));
+ el.className=G.side;el.style.setProperty('--s',s+'px');el.style.gridTemplateColumns=`repeat(${W},${s}px)`;el.innerHTML='';
+ for(let i=0;i<B.R*W;i++){const k=(i/W|0)==B.cr,o=B.rev.has(i),b=document.createElement('button');b.className='c'+(k?' k':'')+(o?' o':'');
+  if(o&&B.cnt[i]){b.textContent=B.cnt[i];b.classList.add('n'+B.cnt[i])}
+  else if(B.boom.has(i)){b.textContent='💥';b.classList.add('x')}
+  else if(B.flag.has(i))b.textContent='🚩';
+  if(!k){b.onclick=()=>act(i,G.fm);b.oncontextmenu=e=>{e.preventDefault();act(i,true)}}
+  el.appendChild(b)}}
+const hidIdx=f=>{for(let i=0;i<B.R*W;i++)if((i/W|0)!=B.cr&&f(i))return 1;return 0};
+function hit(i){B.boom.add(i);G.lives--;const O=G.side=='O';
+ $('log').textContent=O?'Mine! You lose a down.':'Mine! The opponent breaks through.';hud();
+ if(G.lives<=0){B.over=true;render();setTimeout(()=>{if(O){G.ph++;ov('Turnover on downs','You ran out of downs. No points this quarter.',nextDrive,'bad')}else{G.opp+=7;G.ph++;hud();ov('Opponent touchdown','They broke through four times. +7 for the opponent.',nextDrive,'bad')}},700)}}
+function nextDrive(){G.ph>=8?fin():startDrive()}
+function fin(){const w=G.me>G.opp?'You win!':G.me<G.opp?'The opponent wins.':'Tie game.';ov('Final: '+G.me+' – '+G.opp,w,newGame,G.me>G.opp?'td':'','Play again')}
+function act(i,fl){if(B.over)return;const D=G.side=='D';
+ if(B.rev.has(i)){if(!B.cnt[i])return;const n=nbs(i,B.R);if(n.filter(k=>B.flag.has(k)||B.boom.has(k)).length!=B.cnt[i])return;
+  for(const k of n){if(B.over)break;if(!B.rev.has(k)&&!B.flag.has(k)&&!B.boom.has(k)){B.mine[k]?hit(k):flood(k,B.cnt,B.rev,B.R,B.mine)}}}
+ else if(B.boom.has(i))return;
+ else if(fl&&D)B.flag.has(i)?B.flag.delete(i):B.flag.add(i);
+ else if(B.flag.has(i))return;
+ else if(B.mine[i])hit(i);
+ else flood(i,B.cnt,B.rev,B.R,B.mine);
+ render();if(B.over)return;
+ const clear=!hidIdx(i=>!B.mine[i]&&!B.rev.has(i)),flagged=D&&!hidIdx(i=>B.mine[i]&&!B.flag.has(i)&&!B.boom.has(i))&&!hidIdx(i=>B.flag.has(i)&&!B.mine[i]);
+ if(clear||flagged)solved()}
+function solved(){B.over=true;G.p++;const O=G.side=='O';hud();
+ if(G.p<8){$('log').textContent='Puzzle cleared!';return setTimeout(nextPuzzle,900)}
+ G.ph++;if(O)G.me+=7;hud();
+ setTimeout(()=>O?ov('Touchdown!','You solved all 8 puzzles and reached the end zone. +7','nextDrive'==0?0:nextDrive,'td'):ov('Defensive stand','You stopped the opponent. They turn it over.',nextDrive),700)}
+$('fl').onclick=()=>{G.fm=!G.fm;hud()};$('nw').onclick=newGame;newGame();
+</script></body></html>
