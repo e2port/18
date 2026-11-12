@@ -818,7 +818,7 @@
     player.x = clamp(player.x, 0, CANVAS_W - player.width);
 
     player.shieldActive =
-      keysHeld.has("ArrowUp") || keysHeld.has("Shift")) && player.shieldEnergy > 0;
+      (keysHeld.has("ArrowUp") || keysHeld.has("Shift")) && player.shieldEnergy > 0;
 
     // Shieldon.mp3 fires only on the off-to-on transition, not every
     // frame the shield stays held down.
